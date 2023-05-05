@@ -66,8 +66,11 @@ class _SettingsPageState extends State<SettingsPage> {
                     hintText: 'Standardname eingeben',
                   ),
                 ),
-                ElevatedButton( // Hinzufügen der "Speichern"-Schaltfläche
-                  onPressed: () => _onDefaultNameChanged(_defaultNameController.text),
+                ElevatedButton(
+                  onPressed: () {
+                    _onDefaultNameChanged(_defaultNameController.text);
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Standardname gespeichert.'))); // Diese Zeile hinzugefügt
+                  },
                   child: Text('Speichern'),
                 ),
               ],
@@ -88,4 +91,5 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 }
+
 
