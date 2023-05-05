@@ -1,12 +1,22 @@
 import 'package:flutter/material.dart';
 
 class SearchPage extends StatefulWidget {
+  final Function(String) onSearch;
+
+  SearchPage({required this.onSearch});
+
   @override
   _SearchPageState createState() => _SearchPageState();
 }
 
 class _SearchPageState extends State<SearchPage> {
   TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +29,7 @@ class _SearchPageState extends State<SearchPage> {
             border: InputBorder.none,
           ),
           onChanged: (value) {
-            // Implementieren Sie die Suchlogik hier
+            widget.onSearch(value); // Rufen Sie die onSearch-Funktion auf, die von der my_app.dart übergeben wurde
           },
         ),
       ),

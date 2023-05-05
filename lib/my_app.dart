@@ -17,6 +17,8 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'settings_page.dart';
+import 'search_page.dart';
+
 
 
 class MyApp extends StatefulWidget {
@@ -63,6 +65,42 @@ class _MyAppState extends State<MyApp> {
     );
 
     _bannerAd.load();
+  }
+  String _searchQuery = '';
+  TextEditingController _searchController = TextEditingController();
+  bool _isSearching = false;
+
+  void _updateSearchQuery() {
+    setState(() {
+      _searchQuery = _searchController.text;
+    });
+  }
+
+  Widget _buildSearchBar() {
+    return TextField(
+      controller: _searchController,
+      autofocus: true,
+      onChanged: (value) => _updateSearchQuery(),
+      decoration: InputDecoration(
+        hintText: 'Suche...',
+        border: InputBorder.none,
+      ),
+    );
+  }
+
+  void _startSearch(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SearchPage(
+          onSearch: (String searchQuery) {
+            setState(() {
+              _searchQuery = searchQuery;
+            });
+          },
+        ),
+      ),
+    );
   }
 
   Future<void> _saveDefaultDocumentName(String defaultDocumentName) async {
@@ -245,8 +283,23 @@ class _MyAppState extends State<MyApp> {
         builder: (BuildContext context) {
           double screenWidth = MediaQuery.of(context).size.width;
           return Scaffold(
-            appBar: RoundedAppBar(
-              title: 'DocScan',
+            appBar: AppBar(
+              title: _isSearching
+                  ? Expanded(
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value;
+                    });
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Suche...',
+                    border: InputBorder.none,
+                  ),
+                ),
+              )
+                  : Text('DocScan'),
               leading: IconButton(
                 icon: const Icon(Icons.settings),
                 onPressed: () {
@@ -262,6 +315,14 @@ class _MyAppState extends State<MyApp> {
                 },
               ),
               actions: [
+                IconButton(
+                  icon: const Icon(Icons.search),
+                  onPressed: () {
+                    setState(() {
+                      _isSearching = !_isSearching;
+                    });
+                  },
+                ),
                 IconButton(
                   icon: const Icon(Icons.file_upload),
                   onPressed: () => _showUploadDialog(context),
@@ -367,7 +428,6 @@ class _MyAppState extends State<MyApp> {
       ),
     );
   }
-
 
   @override
   void dispose() {
