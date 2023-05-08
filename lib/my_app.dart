@@ -207,7 +207,10 @@ class _MyAppState extends State<MyApp> {
                   children: [
                     InkWell(
                       onTap: () async {
-                        List<String> attachmentFilePaths = state._pictures.map((pictureData) => pictureData.path).toList();
+                        List<String> attachmentFilePaths = state._pictures
+                            .where((pictureData) => !pictureData.shared)
+                            .map((pictureData) => pictureData.path)
+                            .toList();
                         bool emailSent = await state._sendEmailWithAttachments(context, attachmentFilePaths);
                         if (emailSent) {
                           state.setState(() {
@@ -226,11 +229,10 @@ class _MyAppState extends State<MyApp> {
                     Text('E-Mail'),
                   ],
                 ),
-                SizedBox(height: 16), // Fügen Sie hier einen SizedBox-Widget mit einer festgelegten Höhe ein
+                SizedBox(height: 16),
                 InkWell(
                   onTap: () async {
-                    List<String> attachmentFilePaths = state._pictures.map((pictureData) => pictureData.path).toList();
-                    await _shareFiles(context, attachmentFilePaths);
+                    await state._shareFiles(context);
                     Navigator.of(context).pop();
                   },
                   child: Column(
@@ -261,8 +263,13 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  Future<void> _shareFiles(BuildContext context, List<String> attachmentFilePaths) async {
+  Future<void> _shareFiles(BuildContext context) async {
     try {
+      List<String> attachmentFilePaths = _pictures
+          .where((pictureData) => !pictureData.shared)
+          .map((pictureData) => pictureData.path)
+          .toList();
+
       await Share.shareFiles(attachmentFilePaths, text: 'Hier sind die angehängten Bilder:');
       setState(() {
         for (_PictureData picture in _pictures) {
@@ -556,7 +563,10 @@ class _MyAppState extends State<MyApp> {
                 children: [
                   InkWell(
                     onTap: () async {
-                      List<String> attachmentFilePaths = state._pictures.map((pictureData) => pictureData.path).toList();
+                      List<String> attachmentFilePaths = state._pictures
+                          .where((pictureData) => !pictureData.shared)
+                          .map((pictureData) => pictureData.path)
+                          .toList();
                       bool emailSent = await state._sendEmailWithAttachments(context, attachmentFilePaths);
                       if (emailSent) {
                         state.setState(() {
