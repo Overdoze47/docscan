@@ -1,4 +1,3 @@
-import 'dart:ui' as ui;
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -6,18 +5,18 @@ import 'package:intl/intl.dart';
 import 'package:cunning_document_scanner/cunning_document_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_email_sender/flutter_email_sender.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart' show Colors, MaterialColor;
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:doc/ad_helper.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:collection/collection.dart';
-import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'settings_page.dart';
 import 'search_page.dart';
+import 'fullscreen_image.dart';
+import 'rounded_appbar.dart';
 
 
 
@@ -280,7 +279,7 @@ class _MyAppState extends State<MyApp> {
       });
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Konnte das native Teilen-Menü nicht öffnen.')),
+        SnackBar(content: Text('Es sind keine Daten zum teilen vorhanden.')),
       );
     }
   }
@@ -609,129 +608,6 @@ class _MyAppState extends State<MyApp> {
 }
 
 
-
-class FullScreenImage extends StatefulWidget {
-  final String path;
-  final ValueNotifier<String> name;
-  final ValueChanged<String> onNameChanged;
-
-  const FullScreenImage({Key? key, required this.path, required this.name, required this.onNameChanged}) : super(key: key);
-
-  @override
-  _FullScreenImageState createState() => _FullScreenImageState();
-}
-
-class _FullScreenImageState extends State<FullScreenImage> {
-  late BannerAd _bannerAd;
-  bool _isBannerAdReady = false;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _bannerAd = BannerAd(
-      adUnitId: AdHelper.bannerAdUnitId,
-      size: AdSize.banner,
-      request: AdRequest(),
-      listener: BannerAdListener(
-        onAdLoaded: (_) {
-          setState(() {
-            _isBannerAdReady = true;
-          });
-        },
-        onAdFailedToLoad: (ad, error) {
-          ad.dispose();
-        },
-      ),
-    );
-
-    _bannerAd.load();
-  }
-
-  @override
-  void dispose() {
-    _bannerAd.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: ValueListenableBuilder<String>(
-          valueListenable: widget.name,
-          builder: (context, value, child) {
-            return Text(value);
-          },
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: () {
-              TextEditingController nameController = TextEditingController(text: widget.name.value);
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: Text('Bildname ändern'),
-                    content: TextField(
-                      controller: nameController,
-                      onChanged: (value) {},
-                      decoration: InputDecoration(hintText: "Neuer Name"),
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: Text('Abbrechen'),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          String newName = nameController.text;
-                          widget.onNameChanged(newName);
-                          widget.name.value = newName; // Aktualisieren Sie den Wert des ValueNotifier
-                          Navigator.of(context).pop();
-                        },
-                        child: Text('Speichern'),
-                      ),
-                    ],
-                  );
-                },
-              );
-            }, // Hier fehlte eine Klammer
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          if (_isBannerAdReady)
-            Container(
-              child: AdWidget(ad: _bannerAd),
-              width: screenWidth,
-              height: _bannerAd.size.height.toDouble(),
-              alignment: Alignment.center,
-            ),
-          Expanded(
-            child: Center(
-              child: InteractiveViewer(
-                child: Image.file(
-                  File(widget.path),
-                  errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                    return const Text('Fehler beim Laden des Bildes');
-                  },
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _PictureData {
   String name;
   final String date;
@@ -745,52 +621,3 @@ class _PictureData {
   }
 }
 
-class RoundedAppBar extends StatelessWidget with PreferredSizeWidget {
-  final String title;
-  final List<Widget>? actions;
-  final Widget leading; // Neues Attribut hinzufügen
-
-  RoundedAppBar({required this.title, this.actions, required this.leading}); // Konstruktor aktualisieren
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.all(Radius.circular(0)),
-      child: PreferredSize(
-        preferredSize: Size.fromHeight(kToolbarHeight),
-        child: AppBar(
-          leading: leading, // Fügen Sie das leading-Attribut zur AppBar hinzu
-          title: LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints constraints) {
-              return Text(
-                title,
-                style: GoogleFonts.roboto(
-                  textStyle: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-              );
-            },
-          ),
-          centerTitle: true,
-          actions: actions,
-        ),
-      ),
-    );
-  }
-
-  @override
-  Size get preferredSize {
-    final TextPainter textPainter = TextPainter(
-      text: TextSpan(
-        text: title,
-        style: GoogleFonts.roboto(
-          textStyle: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-        ),
-      ),
-      maxLines: 1,
-      textScaleFactor: WidgetsBinding.instance!.window.devicePixelRatio,
-      textDirection: ui.TextDirection.ltr,
-    );
-    textPainter.layout(minWidth: 0, maxWidth: double.infinity);
-    return Size.fromHeight(textPainter.height + 1.0);
-  }
-}
