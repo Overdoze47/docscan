@@ -37,6 +37,16 @@ class _MyAppState extends State<MyApp> {
   late BannerAd _bannerAd;
   bool _isBannerAdReady = false;
 
+  List<_PictureData> _filteredPictures() {
+    if (_searchQuery.isEmpty) {
+      return _pictures;
+    }
+
+    return _pictures.where((_PictureData picture) {
+      return picture.name.toLowerCase().contains(_searchQuery.toLowerCase());
+    }).toList();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -341,7 +351,7 @@ class _MyAppState extends State<MyApp> {
                 Expanded(
                   child: SingleChildScrollView(
                     child: Column(
-                      children: _pictures.map<Widget>((pictureData) {
+                      children: _filteredPictures().map<Widget>((pictureData) {
                         return Dismissible(
                           key: UniqueKey(),
                           onDismissed: (direction) {
