@@ -405,6 +405,18 @@ class _MyAppState extends State<MyApp> {
                             });
                             savePictures();
                           },
+                          background: Container(
+                            alignment: Alignment.centerLeft,
+                            padding: EdgeInsets.only(left: 20),
+                            color: Colors.red,
+                            child: Icon(Icons.delete, color: Colors.white),
+                          ),
+                          secondaryBackground: Container(
+                            alignment: Alignment.centerRight,
+                            padding: EdgeInsets.only(right: 20),
+                            color: Colors.red,
+                            child: Icon(Icons.delete, color: Colors.white),
+                          ),
                           child: Card(
                             elevation: 8.0,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -540,23 +552,28 @@ class _MyAppState extends State<MyApp> {
     final imageName = '${_defaultDocumentName}_${_documentCounter - 1}_$formattedDate';
 
     try {
-      final pickedFile = await ImagePicker().pickImage(source: ImageSource.camera);
-      if (pickedFile != null) {
-        final newPath = await _changeFileName(pickedFile.path, imageName); // Ändern Sie dies, um _changeFileName aufzurufen
-        setState(() {
-          _pictures.add(_PictureData(
-            name: imageName,
-            date: formattedDate,
-            path: newPath,
-          ));
-        });
-        savePictures();
-        _documentCounter++;
+      final List<String>? documentPaths = await CunningDocumentScanner.getPictures(); // Verwenden Sie die getPictures-Methode
+
+      if (documentPaths != null && documentPaths.isNotEmpty) {
+        for (String path in documentPaths) {
+          final newPath = await _changeFileName(path, imageName);
+          setState(() {
+            _pictures.add(_PictureData(
+              name: imageName,
+              date: formattedDate,
+              path: newPath,
+            ));
+          });
+          savePictures();
+          _documentCounter++;
+        }
       }
     } catch (e) {
-      print('Fehler beim Aufnehmen des Bildes: $e');
+      print('Fehler beim Scannen des Dokuments: $e');
     }
   }
+
+
 
   void _openPicture(BuildContext context, String path, String name) {
     _requestStoragePermission().then((_) {
