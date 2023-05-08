@@ -35,6 +35,7 @@ class _MyAppState extends State<MyApp> {
   int _emailSentPictures = 0;
   late BannerAd _bannerAd;
   bool _isBannerAdReady = false;
+  String _emailTemplate = "Hier ist Ihre Standard-E-Mail-Vorlage.";
 
   List<_PictureData> _filteredPictures() {
     if (_searchQuery.isEmpty) {
@@ -46,9 +47,25 @@ class _MyAppState extends State<MyApp> {
     }).toList();
   }
 
+  Future<void> _saveEmailTemplate(String newEmailTemplate) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('emailTemplate', newEmailTemplate);
+  }
+
+  Future<void> _loadEmailTemplate() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? storedEmailTemplate = prefs.getString('emailTemplate');
+    print('Gespeicherte E-Mail-Vorlage: $storedEmailTemplate'); // Debug-Ausgabe hinzugefügt
+    setState(() {
+      _emailTemplate = storedEmailTemplate ?? "Hier ist Ihre Standard-E-Mail-Vorlage.";
+    });
+  }
+
+
   @override
   void initState() {
     super.initState();
+    _loadEmailTemplate();
     initPlatformState();
 
     _loadDefaultDocumentName().then((value) {
@@ -292,6 +309,16 @@ class _MyAppState extends State<MyApp> {
     }).toList());
   }
 
+  Future<void> _shareFile(BuildContext context, String filePath) async {
+    try {
+      await Share.shareFiles([filePath], text: 'Hier ist das angehängte Bild:');
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Beim Teilen der Datei ist ein Fehler aufgetreten.')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -321,12 +348,24 @@ class _MyAppState extends State<MyApp> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => SettingsPage(defaultDocumentName: _defaultDocumentName, onDefaultNameChanged: (String newDefaultName) {
-                      setState(() {
-                        _defaultDocumentName = newDefaultName;
-                      });
-                      _saveDefaultDocumentName(newDefaultName);
-                    })),
+                    MaterialPageRoute(builder: (context) =>
+                        SettingsPage(
+                          defaultDocumentName: _defaultDocumentName,
+                          onDefaultNameChanged: (String newDefaultName) {
+                            setState(() {
+                              _defaultDocumentName = newDefaultName;
+                            });
+                            _saveDefaultDocumentName(newDefaultName);
+                          },
+                          emailTemplate: _emailTemplate,
+                          onEmailTemplateChanged: (String newEmailTemplate) {
+                            setState(() {
+                              _emailTemplate = newEmailTemplate;
+                            });
+                            _saveEmailTemplate(newEmailTemplate);
+                          },
+                        ),
+                    ),
                   );
                 },
               ),
@@ -413,6 +452,10 @@ class _MyAppState extends State<MyApp> {
                                               ),
                                             ),
                                           ),
+                                          IconButton(
+                                            icon: const Icon(Icons.share),
+                                            onPressed: () => _shareFile(context, pictureData.path),
+                                          ),
                                           if (pictureData.shared)
                                             Padding(
                                               padding: EdgeInsets.only(right: 8.0),
@@ -454,7 +497,7 @@ class _MyAppState extends State<MyApp> {
   Future<bool> _sendEmailWithAttachments(BuildContext context, List<String> attachmentFilePaths) async {
     print('Versenden der Dateien: $attachmentFilePaths');
     final Email email = Email(
-      body: 'Hier sind die angehängten Bilder:',
+      body: _emailTemplate,
       subject: 'Betreff der E-Mail',
       recipients: [''],
       attachmentPaths: attachmentFilePaths,

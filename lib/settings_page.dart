@@ -4,8 +4,15 @@ import 'package:flutter_email_sender/flutter_email_sender.dart';
 class SettingsPage extends StatefulWidget {
   final String defaultDocumentName;
   final Function(String) onDefaultNameChanged;
+  final String emailTemplate;
+  final Function(String) onEmailTemplateChanged;
 
-  SettingsPage({required this.defaultDocumentName, required this.onDefaultNameChanged});
+  SettingsPage({
+    required this.defaultDocumentName,
+    required this.onDefaultNameChanged,
+    required this.emailTemplate,
+    required this.onEmailTemplateChanged,
+  });
 
   @override
   _SettingsPageState createState() => _SettingsPageState();
@@ -13,20 +20,26 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   TextEditingController _defaultNameController = TextEditingController();
+  TextEditingController _emailTemplateController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _defaultNameController.text = widget.defaultDocumentName;
+    _emailTemplateController.text = widget.emailTemplate;
   }
 
   void _onDefaultNameChanged(String newDefaultName) {
-    widget.onDefaultNameChanged(newDefaultName); // Fügen Sie diese Zeile hinzu
+    widget.onDefaultNameChanged(newDefaultName);
+  }
+
+  void _onEmailTemplateChanged(String newEmailTemplate) {
+    widget.onEmailTemplateChanged(newEmailTemplate);
   }
 
   void _sendFeedbackEmail() async {
     final Email email = Email(
-      body: '',
+      body: widget.emailTemplate,
       subject: 'DocScan Feedback',
       recipients: ['christoph.boettcher.app@gmail.com'],
       isHTML: false,
@@ -69,7 +82,29 @@ class _SettingsPageState extends State<SettingsPage> {
                 ElevatedButton(
                   onPressed: () {
                     _onDefaultNameChanged(_defaultNameController.text);
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Standardname gespeichert.'))); // Diese Zeile hinzugefügt
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Standardname gespeichert.')),
+                    );
+                  },
+                  child: Text('Speichern'),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'E-Mail Vorlage',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                TextField(
+                  controller: _emailTemplateController,
+                  decoration: InputDecoration(
+                    hintText: 'Standard E-Mail Text eingeben',
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    _onEmailTemplateChanged(_emailTemplateController.text);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('E-Mail Vorlage gespeichert.')),
+                    );
                   },
                   child: Text('Speichern'),
                 ),
@@ -91,5 +126,3 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 }
-
-
