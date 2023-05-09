@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:doc/ad_helper.dart';
+import 'package:image/image.dart' as img;
 
 class FullScreenImage extends StatefulWidget {
   final String path;
@@ -18,9 +19,13 @@ class _FullScreenImageState extends State<FullScreenImage> {
   late BannerAd _bannerAd;
   bool _isBannerAdReady = false;
 
+  img.Image? _image;
+  img.Image? _filteredImage;
+
   @override
   void initState() {
     super.initState();
+    _loadImage();
 
     _bannerAd = BannerAd(
       adUnitId: AdHelper.bannerAdUnitId,
@@ -39,6 +44,26 @@ class _FullScreenImageState extends State<FullScreenImage> {
     );
 
     _bannerAd.load();
+  }
+
+  Future<void> _loadImage() async {
+    final bytes = await File(widget.path).readAsBytes();
+    final image = img.decodeImage(bytes);
+    if (image != null) {
+      setState(() {
+        _image = image;
+        _filteredImage = img.copyResize(image, width: 600);
+      });
+    }
+  }
+
+  void _applyFilter(void Function(img.Image) filter) {
+    if (_image != null) {
+      setState(() {
+        _filteredImage = img.copyResize(_image!, width: 600);
+        filter(_filteredImage!);
+      });
+    }
   }
 
   @override
@@ -85,7 +110,7 @@ class _FullScreenImageState extends State<FullScreenImage> {
                         onPressed: () {
                           String newName = nameController.text;
                           widget.onNameChanged(newName);
-                          widget.name.value = newName; // Aktualisieren Sie den Wert des ValueNotifier
+                          widget.name.value = newName;
                           Navigator.of(context).pop();
                         },
                         child: Text('Speichern'),
@@ -94,7 +119,7 @@ class _FullScreenImageState extends State<FullScreenImage> {
                   );
                 },
               );
-            }, // Hier fehlte eine Klammer
+            },
           ),
         ],
       ),
@@ -109,14 +134,64 @@ class _FullScreenImageState extends State<FullScreenImage> {
             ),
           Expanded(
             child: Center(
-              child: InteractiveViewer(
-                child: Image.file(
-                  File(widget.path),
+              child: _filteredImage != null
+                  ? InteractiveViewer(
+                child: Image.memory(
+                  img.encodeJpg(_filteredImage!),
                   errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                     return const Text('Fehler beim Laden des Bildes');
                   },
                 ),
-              ),
+              )
+                  : CircularProgressIndicator(),
+            ),
+          ),
+          Container(
+            height: 40,
+            padding: EdgeInsets.symmetric(horizontal: 4.0),
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: [
+                ElevatedButton(
+                  onPressed: () => _applyFilter((image) {}),
+                  child: Text('Original'),
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.blue,
+                    onPrimary: Colors.white,
+                    padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  ),
+                ),
+                SizedBox(width: 8.0),
+                ElevatedButton(
+                  onPressed: () => _applyFilter(img.grayscale),
+                  child: Text('Graustufen'),
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.blue,
+                    onPrimary: Colors.white,
+                    padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  ),
+                ),
+                SizedBox(width: 8.0),
+                ElevatedButton(
+                  onPressed: () => _applyFilter((image) => img.adjustColor(image, brightness: 10)),
+                  child: Text('Helligkeit'),
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.blue,
+                    onPrimary: Colors.white,
+                    padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  ),
+                ),
+                SizedBox(width: 8.0),
+                ElevatedButton(
+                  onPressed: () => _applyFilter((image) => img.adjustColor(image, contrast: 10)),
+                  child: Text('Kontrast'),
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.blue,
+                    onPrimary: Colors.white,
+                    padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -124,3 +199,4 @@ class _FullScreenImageState extends State<FullScreenImage> {
     );
   }
 }
+
