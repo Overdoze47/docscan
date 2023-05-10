@@ -1,15 +1,24 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:doc/ad_helper.dart';
 import 'package:image/image.dart' as img;
+import 'my_app.dart';
 
 class FullScreenImage extends StatefulWidget {
   final String path;
   final ValueNotifier<String> name;
-  final ValueChanged<String> onNameChanged;
+  final Function(String) onNameChanged;
+  final FileType fileType; // add this line
 
-  const FullScreenImage({Key? key, required this.path, required this.name, required this.onNameChanged}) : super(key: key);
+  const FullScreenImage({
+    Key? key,
+    required this.path,
+    required this.name,
+    required this.onNameChanged,
+    required this.fileType, // and this line
+  }) : super(key: key);
 
   @override
   _FullScreenImageState createState() => _FullScreenImageState();
@@ -134,7 +143,8 @@ class _FullScreenImageState extends State<FullScreenImage> {
             ),
           Expanded(
             child: Center(
-              child: _filteredImage != null
+              child: widget.fileType == FileType.jpg // Überprüfen Sie den Dateityp
+                  ? _filteredImage != null
                   ? InteractiveViewer(
                 child: Image.memory(
                   img.encodeJpg(_filteredImage!),
@@ -143,7 +153,26 @@ class _FullScreenImageState extends State<FullScreenImage> {
                   },
                 ),
               )
-                  : CircularProgressIndicator(),
+                  : CircularProgressIndicator()
+                  : PDFView( // Verwenden Sie PDFView für PDFs
+                filePath: widget.path,
+                enableSwipe: true,
+                swipeHorizontal: true,
+                autoSpacing: false,
+                pageFling: false,
+                onError: (error) {
+                  print(error.toString());
+                },
+                onPageError: (page, error) {
+                  print('$page: ${error.toString()}');
+                },
+                onViewCreated: (PDFViewController pdfViewController) {
+                  // Optionaler Code, der ausgeführt wird, sobald die PDF-Ansicht erstellt wurde
+                },
+                onRender: (_pages) {
+                  // Optionaler Code, der ausgeführt wird, sobald die PDF gerendert wurde
+                },
+              ),
             ),
           ),
         ],
