@@ -16,8 +16,9 @@ import 'package:image_picker/image_picker.dart';
 import 'settings_page.dart';
 import 'search_page.dart';
 import 'fullscreen_image.dart';
-import 'rounded_appbar.dart';
-
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pdfWidgets;
+import 'package:path_provider/path_provider.dart';
 
 
 class MyApp extends StatefulWidget {
@@ -31,11 +32,23 @@ class _MyAppState extends State<MyApp> {
   List<_PictureData> _pictures = [];
   Set<int> _sharedPictures = {};
   int _documentCounter = 1;
-  String _defaultDocumentName = 'DocScan';
   int _emailSentPictures = 0;
   late BannerAd _bannerAd;
   bool _isBannerAdReady = false;
-  String _emailTemplate = "Hier ist Ihre Standard-E-Mail-Vorlage.";
+  String _defaultDocumentName = 'DocScan';
+  String _emailTemplate = 'Anbei sende ich dir die gescannten Dokumente \n\n\n Von der App DocScan gescannt.';
+
+  void _onDefaultNameChanged(String newName) {
+    setState(() {
+      _defaultDocumentName = newName;
+    });
+  }
+
+  void _onEmailTemplateChanged(String newTemplate) {
+    setState(() {
+      _emailTemplate = newTemplate;
+    });
+  }
 
   List<_PictureData> _filteredPictures() {
     if (_searchQuery.isEmpty) {
@@ -57,7 +70,7 @@ class _MyAppState extends State<MyApp> {
     String? storedEmailTemplate = prefs.getString('emailTemplate');
     print('Gespeicherte E-Mail-Vorlage: $storedEmailTemplate'); // Debug-Ausgabe hinzugefügt
     setState(() {
-      _emailTemplate = storedEmailTemplate ?? "Hier ist Ihre Standard-E-Mail-Vorlage.";
+      _emailTemplate = storedEmailTemplate ?? "Anbei sende ich dir die gescannten Dokumente \n\n\n Von der App DocScan gescannt.";
     });
   }
 
@@ -311,13 +324,17 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _shareFile(BuildContext context, String filePath) async {
     try {
-      await Share.shareFiles([filePath], text: 'Hier ist das angehängte Bild:');
+      await Share.shareFiles([filePath], text: _emailTemplate);
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Beim Teilen der Datei ist ein Fehler aufgetreten.')),
       );
     }
   }
+
+
+  List<_PictureData> _selectedPictures = [];
+  bool _isPdfConversionMode = false;
 
   @override
   Widget build(BuildContext context) {
@@ -347,24 +364,14 @@ class _MyAppState extends State<MyApp> {
                 icon: const Icon(Icons.settings),
                 onPressed: () {
                   Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) =>
-                        SettingsPage(
-                          defaultDocumentName: _defaultDocumentName,
-                          onDefaultNameChanged: (String newDefaultName) {
-                            setState(() {
-                              _defaultDocumentName = newDefaultName;
-                            });
-                            _saveDefaultDocumentName(newDefaultName);
-                          },
-                          emailTemplate: _emailTemplate,
-                          onEmailTemplateChanged: (String newEmailTemplate) {
-                            setState(() {
-                              _emailTemplate = newEmailTemplate;
-                            });
-                            _saveEmailTemplate(newEmailTemplate);
-                          },
-                        ),
+                      context,
+                      MaterialPageRoute(
+                      builder: (context) => SettingsPage(
+                      defaultDocumentName: _defaultDocumentName,
+                      onDefaultNameChanged: _onDefaultNameChanged,
+                      emailTemplate: _emailTemplate,
+                      onEmailTemplateChanged: _onEmailTemplateChanged,
+                      ),
                     ),
                   );
                 },
@@ -378,6 +385,24 @@ class _MyAppState extends State<MyApp> {
                     });
                   },
                 ),
+                IconButton(
+                  icon: const Icon(Icons.picture_as_pdf_rounded),
+                  onPressed: () {
+                    setState(() {
+                      _isPdfConversionMode = true;
+                    });
+                  },
+                ),
+                if (_isPdfConversionMode)
+                  IconButton(
+                    icon: const Icon(Icons.check),
+                    onPressed: () {
+                      _convertSelectedImagesToPdf();
+                      setState(() {
+                        _isPdfConversionMode = false;
+                      });
+                    },
+                  ),
                 IconButton(
                   icon: const Icon(Icons.file_upload),
                   onPressed: () => _showUploadDialog(context),
@@ -437,7 +462,7 @@ class _MyAppState extends State<MyApp> {
                                 builder: (BuildContext context) {
                                   return InkWell(
                                     onTap: () {
-                                      _openPicture(context, pictureData.path, pictureData.name);
+                                      _openPicture(context, pictureData.path, pictureData.name, pictureData.fileType);
                                     },
                                     child: Container(
                                       margin: EdgeInsets.all(8.0),
@@ -445,11 +470,17 @@ class _MyAppState extends State<MyApp> {
                                         children: [
                                           ClipRRect(
                                             borderRadius: BorderRadius.circular(8.0),
-                                            child: Image.file(
+                                            child: pictureData.fileType == FileType.jpg
+                                                ? Image.file(
                                               File(pictureData.path),
                                               width: 56,
                                               height: 56,
                                               fit: BoxFit.cover,
+                                            )
+                                                : Image.asset(
+                                              'assets/pdf_logo.png',
+                                              width: 56,
+                                              height: 56,
                                             ),
                                           ),
                                           Expanded(
@@ -463,6 +494,15 @@ class _MyAppState extends State<MyApp> {
                                                 ],
                                               ),
                                             ),
+                                          ),
+                                          if (_isPdfConversionMode)
+                                            Checkbox(
+                                              value: pictureData.selected,
+                                              onChanged: (bool? value) {
+                                                setState(() {
+                                                  pictureData.selected = value!;
+                                              });
+                                            },
                                           ),
                                           IconButton(
                                             icon: const Icon(Icons.share),
@@ -504,6 +544,43 @@ class _MyAppState extends State<MyApp> {
   void dispose() {
     _bannerAd.dispose();
     super.dispose();
+  }
+
+  void _convertSelectedImagesToPdf() async {
+    // Erstellen Sie eine Liste von ausgewählten Bildern
+    _selectedPictures = _pictures.where((picture) => picture.selected).toList();
+
+    for (var picture in _selectedPictures) {
+      // Erstellen Sie ein neues PDF-Dokument für jedes Bild
+      final pdf = pdfWidgets.Document();
+
+      final image = pdfWidgets.MemoryImage(
+        File(picture.path).readAsBytesSync(),
+      );
+
+      pdf.addPage(
+        pdfWidgets.Page(
+          build: (pdfWidgets.Context context) => pdfWidgets.Center(
+            child: pdfWidgets.Image(image),
+          ),
+        ),
+      );
+
+      final output = await getTemporaryDirectory();
+      final file = File("${output.path}/${picture.name}.pdf");
+      await file.writeAsBytes(await pdf.save());
+
+      // Aktualisieren Sie den Pfad und den Dateityp in Ihrer pictureData-Instanz
+      setState(() {
+        picture.path = file.path;
+        picture.fileType = FileType.pdf;  // Sie müssen diese Eigenschaft zu Ihrer _PictureData-Klasse hinzufügen
+      });
+    }
+
+    // Deaktivieren Sie den PDF-Konvertierungsmodus
+    setState(() {
+      _isPdfConversionMode = false;
+    });
   }
 
   Future<bool> _sendEmailWithAttachments(BuildContext context, List<String> attachmentFilePaths) async {
@@ -575,7 +652,7 @@ class _MyAppState extends State<MyApp> {
 
 
 
-  void _openPicture(BuildContext context, String path, String name) {
+  void _openPicture(BuildContext context, String path, String name, FileType fileType) {
     _requestStoragePermission().then((_) {
       Navigator.push(
         context,
@@ -598,6 +675,7 @@ class _MyAppState extends State<MyApp> {
                 });
               });
             },
+            fileType: fileType,
           ),
         ),
       );
@@ -668,16 +746,35 @@ class _MyAppState extends State<MyApp> {
 }
 
 
+enum FileType { jpg, pdf }
+
 class _PictureData {
   String name;
   final String date;
-  final String path;
+  String path;
   bool shared;
+  bool selected;
+  FileType fileType;
 
-  _PictureData({required this.name, required this.date, required this.path, this.shared = false});
+  _PictureData({
+    required this.name,
+    required this.date,
+    required this.path,
+    this.shared = false,
+    this.selected = false,
+    this.fileType = FileType.jpg,  // Default file type is jpg
+  });
 
   _PictureData updatePath(String newPath) {
-    return _PictureData(name: name, date: date, path: newPath, shared: shared);
+    return _PictureData(
+      name: this.name,
+      date: this.date, // Fügen Sie das aktuelle date hinzu
+      path: newPath,
+      shared: this.shared, // Fügen Sie den aktuellen shared Status hinzu
+      selected: this.selected, // Fügen Sie den aktuellen selected Status hinzu
+      fileType: this.fileType,
+    );
   }
 }
+
 
