@@ -296,7 +296,7 @@ class _MyAppState extends State<MyApp> {
       });
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Es sind keine Daten zum teilen vorhanden.')),
+        SnackBar(content: Text('Dokumente wurden schon geteilt.')),
       );
     }
   }
