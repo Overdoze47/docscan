@@ -38,6 +38,14 @@ class _MyAppState extends State<MyApp> {
   String _defaultDocumentName = 'DocScan';
   String _emailTemplate = 'Anbei sende ich dir die gescannten Dokumente \n\n\n Von der App DocScan gescannt.';
 
+  bool _imageCompression = false; // Sie können den Standardwert nach Bedarf festlegen.
+  void _onImageCompressionChanged(bool newValue) {
+    setState(() {
+      _imageCompression = newValue;
+    });
+    // Hier können Sie weitere Aktionen durchführen, wenn sich der Zustand ändert, z.B. die Einstellung speichern.
+  }
+
   void _onDefaultNameChanged(String newName) {
     setState(() {
       _defaultDocumentName = newName;
@@ -322,6 +330,29 @@ class _MyAppState extends State<MyApp> {
     }).toList());
   }
 
+  Future<void> _addPictureToExistingDocument(BuildContext context, _PictureData existingDocument) async {
+    try {
+      final List<String>? documentPaths = await CunningDocumentScanner.getPictures();
+
+      if (documentPaths != null && documentPaths.isNotEmpty) {
+        for (String path in documentPaths) {
+          final newPath = await _changeFileName(path, existingDocument.name);
+          setState(() {
+            _pictures.add(_PictureData(
+              name: existingDocument.name,
+              date: existingDocument.date,
+              path: newPath,
+            ));
+          });
+          savePictures();
+          _documentCounter++;
+        }
+      }
+    } catch (e) {
+      print('Fehler beim Scannen des Dokuments: $e');
+    }
+  }
+
   Future<void> _shareFile(BuildContext context, String filePath) async {
     try {
       await Share.shareFiles([filePath], text: _emailTemplate);
@@ -364,13 +395,15 @@ class _MyAppState extends State<MyApp> {
                 icon: const Icon(Icons.settings),
                 onPressed: () {
                   Navigator.push(
-                      context,
-                      MaterialPageRoute(
+                    context,
+                    MaterialPageRoute(
                       builder: (context) => SettingsPage(
-                      defaultDocumentName: _defaultDocumentName,
-                      onDefaultNameChanged: _onDefaultNameChanged,
-                      emailTemplate: _emailTemplate,
-                      onEmailTemplateChanged: _onEmailTemplateChanged,
+                        defaultDocumentName: _defaultDocumentName,
+                        onDefaultNameChanged: _onDefaultNameChanged,
+                        emailTemplate: _emailTemplate,
+                        onEmailTemplateChanged: _onEmailTemplateChanged,
+                        imageCompression: _imageCompression,
+                        onImageCompressionChanged: _onImageCompressionChanged,
                       ),
                     ),
                   );
@@ -505,6 +538,10 @@ class _MyAppState extends State<MyApp> {
                                             },
                                           ),
                                           IconButton(
+                                            icon: const Icon(Icons.add),
+                                            onPressed: () => _addPictureToExistingDocument(context, pictureData),
+                                          ),
+                                          IconButton(
                                             icon: const Icon(Icons.share),
                                             onPressed: () => _shareFile(context, pictureData.path),
                                           ),
@@ -621,6 +658,29 @@ class _MyAppState extends State<MyApp> {
         savePictures();
       }
     });
+  }
+
+  Future<void> _addPictureToDocument(_PictureData document) async {
+    try {
+      final List<String>? documentPaths = await CunningDocumentScanner.getPictures();
+
+      if (documentPaths != null && documentPaths.isNotEmpty) {
+        for (String path in documentPaths) {
+          final newPath = await _changeFileName(path, document.name);
+          setState(() {
+            _pictures.add(_PictureData(
+              name: document.name,
+              date: document.date,
+              path: newPath,
+            ));
+          });
+          savePictures();
+          _documentCounter++;
+        }
+      }
+    } catch (e) {
+      print('Fehler beim Scannen des Dokuments: $e');
+    }
   }
 
   Future<void> _onCameraButtonPressed() async {

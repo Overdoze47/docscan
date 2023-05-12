@@ -84,7 +84,6 @@ flutter:
     - assets/tessdata/
     - assets/icon.png
     - assets/share.png
-    - assets/pdf_logo.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

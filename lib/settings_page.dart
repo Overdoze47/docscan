@@ -6,12 +6,17 @@ class SettingsPage extends StatefulWidget {
   final Function(String) onDefaultNameChanged;
   final String emailTemplate;
   final Function(String) onEmailTemplateChanged;
+  final bool imageCompression;
+  final Function(bool) onImageCompressionChanged;
+
 
   SettingsPage({
     required this.defaultDocumentName,
     required this.onDefaultNameChanged,
     required this.emailTemplate,
     required this.onEmailTemplateChanged,
+    required this.imageCompression,
+    required this.onImageCompressionChanged,
   });
 
   @override
@@ -49,7 +54,7 @@ class _SettingsPageState extends State<SettingsPage> {
       await FlutterEmailSender.send(email);
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('E-Mail-Client kann nicht geöffnet werden.'),
         ),
       );
@@ -60,22 +65,22 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Einstellungen'),
+        title: const Text('Einstellungen'),
       ),
       body: Stack(
         children: [
           Padding(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'Standardname Scandatei',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 TextField(
                   controller: _defaultNameController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: 'Standardname eingeben',
                   ),
                 ),
@@ -83,19 +88,19 @@ class _SettingsPageState extends State<SettingsPage> {
                   onPressed: () {
                     _onDefaultNameChanged(_defaultNameController.text);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Standardname gespeichert.')),
+                      const SnackBar(content: Text('Standardname gespeichert.')),
                     );
                   },
-                  child: Text('Speichern'),
+                  child: const Text('Speichern'),
                 ),
-                SizedBox(height: 20),
-                Text(
+                const SizedBox(height: 20),
+                const Text(
                   'E-Mail Vorlage',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 TextField(
                   controller: _emailTemplateController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: 'Standard E-Mail Text eingeben',
                   ),
                 ),
@@ -103,21 +108,43 @@ class _SettingsPageState extends State<SettingsPage> {
                   onPressed: () {
                     _onEmailTemplateChanged(_emailTemplateController.text);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('E-Mail Vorlage gespeichert.')),
+                      const SnackBar(content: Text('E-Mail Vorlage gespeichert.')),
                     );
                   },
-                  child: Text('Speichern'),
+                  child: const Text('Speichern'),
                 ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Bildkomprimierung',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                SwitchListTile(
+                  title: const Text('Für neue Scans'),
+                  value: widget.imageCompression,
+                  onChanged: (bool value) {
+                    setState(() {
+                      widget.onImageCompressionChanged(value);
+                    });
+                  },
+                ),
+                if (!widget.imageCompression)
+                  const Padding(
+                    padding: EdgeInsets.only(left: 16),
+                    child: Text(
+                      "Scans mit größeren Speicherverbrauch, führen zu längeren Ladezeiten.",
+                      style: TextStyle(fontSize: 14, color: Colors.red),
+                    ),
+                  ),
               ],
             ),
           ),
           Align(
             alignment: Alignment.bottomCenter,
             child: Padding(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: ElevatedButton(
                 onPressed: _sendFeedbackEmail,
-                child: Text('Feedback senden'),
+                child: const Text('Feedback senden'),
               ),
             ),
           ),
@@ -126,3 +153,4 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 }
+
