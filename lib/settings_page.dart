@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_email_sender/flutter_email_sender.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsPage extends StatefulWidget {
   final String defaultDocumentName;
@@ -8,7 +9,6 @@ class SettingsPage extends StatefulWidget {
   final Function(String) onEmailTemplateChanged;
   final bool imageCompression;
   final Function(bool) onImageCompressionChanged;
-
 
   SettingsPage({
     required this.defaultDocumentName,
@@ -32,6 +32,21 @@ class _SettingsPageState extends State<SettingsPage> {
     super.initState();
     _defaultNameController.text = widget.defaultDocumentName;
     _emailTemplateController.text = widget.emailTemplate;
+    getImageCompression().then((value) {
+      setState(() {
+        widget.onImageCompressionChanged(value);
+      });
+    });
+  }
+
+  void setImageCompression(bool value) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('imageCompression', value);
+  }
+
+  Future<bool> getImageCompression() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('imageCompression') ?? false;
   }
 
   void _onDefaultNameChanged(String newDefaultName) {
@@ -124,6 +139,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   onChanged: (bool value) {
                     setState(() {
                       widget.onImageCompressionChanged(value);
+                      setImageCompression(value);  // Setzen Sie den neuen Wert in SharedPreferences
                     });
                   },
                 ),

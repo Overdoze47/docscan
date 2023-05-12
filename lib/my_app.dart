@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cunning_document_scanner/cunning_document_scanner.dart';
@@ -37,6 +38,9 @@ class _MyAppState extends State<MyApp> {
   bool _isBannerAdReady = false;
   String _defaultDocumentName = 'DocScan';
   String _emailTemplate = 'Anbei sende ich dir die gescannten Dokumente \n\n\n Von der App DocScan gescannt.';
+  List<Folder> _folders = [];
+  bool _isFolderViewMode = true;
+
 
   bool _imageCompression = false; // Sie können den Standardwert nach Bedarf festlegen.
   void _onImageCompressionChanged(bool newValue) {
@@ -50,6 +54,132 @@ class _MyAppState extends State<MyApp> {
     setState(() {
       _defaultDocumentName = newName;
     });
+  }
+
+  void _showFolderDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Ordner'),
+        content: SingleChildScrollView( // Hinzufügen von SingleChildScrollView
+          child: ListBody( // Hinzufügen von ListBody
+            children: _folders.map((folder) {
+              return Card(
+                elevation: 5,
+                child: ListTile(
+                  leading: Icon(Icons.folder),
+                  title: Text(folder.name),
+                  trailing: IconButton(
+                    icon: Icon(Icons.delete, color: Colors.red),
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text('Ordner löschen'),
+                          content: Text('Sind Sie sicher, dass Sie diesen Ordner löschen möchten?'),
+                          actions: [
+                            TextButton(
+                              child: Text('Abbrechen'),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                            TextButton(
+                              child: Text('Löschen'),
+                              onPressed: () {
+                                setState(() {
+                                  _folders.remove(folder);
+                                });
+                                _saveFolders();
+                                Navigator.of(context).pop();
+                                Navigator.of(context).pop(); // Schließen des aktuellen Dialogs
+                                _showFolderDialog(context); // Öffnen Sie den Dialog erneut, um die aktualisierte Liste anzuzeigen
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: Text('Ordner hinzufügen'),
+            onPressed: () async {
+              var folderName = await _showFolderNameDialog(context);
+              if (folderName != null) {
+                setState(() {
+                  _folders.add(Folder(name: folderName, images: []));
+                });
+                _saveFolders();
+                Navigator.of(context).pop();
+                _showFolderDialog(context); // Öffnet den Dialog erneut, um die aktualisierte Liste anzuzeigen
+              }
+            },
+          ),
+          TextButton(
+            child: Text('Schließen'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<String?> _showFolderNameDialog(BuildContext context) async {
+    String? folderName;
+    await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Neuen Ordner erstellen'),
+          content: TextField(
+            onChanged: (value) {
+              folderName = value;
+            },
+            decoration: InputDecoration(
+              hintText: "Ordnername",
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Abbrechen'),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+            TextButton(
+              child: Text('Speichern'),
+              onPressed: () {
+                Navigator.pop(context, folderName);
+              },
+            ),
+          ],
+        );
+      },
+    );
+    return folderName;
+  }
+
+  void _loadFolders() async {
+    final prefs = await SharedPreferences.getInstance();
+    final foldersJson = prefs.getString('folders');
+    if (foldersJson != null) {
+      final List<dynamic> folderList = jsonDecode(foldersJson);
+      _folders = folderList.map((folder) => Folder.fromJson(folder)).toList();
+    }
+  }
+
+  void _saveFolders() async {
+    final prefs = await SharedPreferences.getInstance();
+    final foldersJson = jsonEncode(_folders.map((folder) => folder.toJson()).toList());
+    prefs.setString('folders', foldersJson);
   }
 
   void _onEmailTemplateChanged(String newTemplate) {
@@ -86,6 +216,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    _loadFolders();
     _loadEmailTemplate();
     initPlatformState();
 
@@ -392,7 +523,7 @@ class _MyAppState extends State<MyApp> {
               )
                   : Text('DocScan'),
               leading: IconButton(
-                icon: const Icon(Icons.settings),
+                icon: const Icon(Icons.settings_rounded),
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -442,7 +573,7 @@ class _MyAppState extends State<MyApp> {
                 ),
               ],
             ),
-            body: Column(
+            body : Column(
               children: [
                 if (_isBannerAdReady)
                   Container(
@@ -565,12 +696,31 @@ class _MyAppState extends State<MyApp> {
                 ),
               ],
             ),
-            floatingActionButton: FloatingActionButton(
-              onPressed: _onCameraButtonPressed,
-              child: const Icon(Icons.camera_alt),
-              tooltip: 'Bilder hinzufügen',
+            floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
+            floatingActionButton: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Builder(
+                builder: (BuildContext context) {
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      FloatingActionButton(
+                        onPressed: () => _showFolderDialog(context), // Hier den Kontext übergeben
+                        tooltip: 'Ordner anzeigen',
+                        child: Icon(Icons.folder),
+                      ),
+                      SizedBox(height: 16),  // Abstand zwischen den Buttons
+                      FloatingActionButton(
+                        onPressed: _onCameraButtonPressed,
+                        tooltip: 'Bilder hinzufügen',
+                        child: Icon(Icons.camera_alt),
+                      ),
+                    ],
+                  );
+                },
+              ),
             ),
-            floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+
           );
         },
       ),
@@ -802,6 +952,29 @@ class _MyAppState extends State<MyApp> {
         ],
       );
     },
+  );
+}
+
+class Folder {
+  String name;
+  List<String> images;
+
+  Folder({required this.name, required this.images});
+
+  Folder.fromJson(Map<String, dynamic> json)
+      : name = json['name'],
+        images = List<String>.from(json['images']);
+
+  Map<String, dynamic> toJson() => {
+    'name': name,
+    'images': images,
+  };
+}
+  // Erstellt Folder aus Map
+Folder fromMap(Map<String, dynamic> map) {
+  return Folder(
+    name: map['name'],
+    images: List<String>.from(map['images']),
   );
 }
 
