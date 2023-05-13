@@ -31,6 +31,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   List<_PictureData> _pictures = [];
+  List<_PictureData> _displayedPictures = [];
   Set<int> _sharedPictures = {};
   int _documentCounter = 1;
   int _emailSentPictures = 0;
@@ -40,7 +41,12 @@ class _MyAppState extends State<MyApp> {
   String _emailTemplate = 'Anbei sende ich dir die gescannten Dokumente \n\n\n Von der App DocScan gescannt.';
   List<Folder> _folders = [];
   bool _isFolderViewMode = true;
+  Folder? _selectedFolder;
+  String? currentFolderName;
 
+  List<_PictureData> getFolderPictures(String folderName) {
+    return _pictures.where((picture) => picture.folderName == folderName).toList();
+  }
 
   bool _imageCompression = false; // Sie können den Standardwert nach Bedarf festlegen.
   void _onImageCompressionChanged(bool newValue) {
@@ -56,19 +62,36 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  void _onFolderNameClicked(Folder folder) {
+    setState(() {
+      _selectedFolder = folder;
+    });
+  }
+
   void _showFolderDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text('Ordner'),
-        content: SingleChildScrollView( // Hinzufügen von SingleChildScrollView
-          child: ListBody( // Hinzufügen von ListBody
+        content: SingleChildScrollView(
+          child: ListBody(
             children: _folders.map((folder) {
               return Card(
                 elevation: 5,
                 child: ListTile(
                   leading: Icon(Icons.folder),
                   title: Text(folder.name),
+                  onTap: () {
+                    setState(() {
+                      currentFolderName = folder.name;
+                      if (currentFolderName != null) {
+                        _displayedPictures = getFolderPictures(currentFolderName!);
+                      } else {
+                        _displayedPictures = [];
+                      }
+                    });
+                    Navigator.of(context).pop();
+                  },
                   trailing: IconButton(
                     icon: Icon(Icons.delete, color: Colors.red),
                     onPressed: () {
@@ -92,8 +115,8 @@ class _MyAppState extends State<MyApp> {
                                 });
                                 _saveFolders();
                                 Navigator.of(context).pop();
-                                Navigator.of(context).pop(); // Schließen des aktuellen Dialogs
-                                _showFolderDialog(context); // Öffnen Sie den Dialog erneut, um die aktualisierte Liste anzuzeigen
+                                Navigator.of(context).pop();
+                                _showFolderDialog(context);
                               },
                             ),
                           ],
@@ -117,7 +140,7 @@ class _MyAppState extends State<MyApp> {
                 });
                 _saveFolders();
                 Navigator.of(context).pop();
-                _showFolderDialog(context); // Öffnet den Dialog erneut, um die aktualisierte Liste anzuzeigen
+                _showFolderDialog(context);
               }
             },
           ),
@@ -176,6 +199,12 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
+  void updateDisplayedPictures(String folderName) {
+    setState(() {
+      _displayedPictures = getFolderPictures(folderName);
+    });
+  }
+
   void _saveFolders() async {
     final prefs = await SharedPreferences.getInstance();
     final foldersJson = jsonEncode(_folders.map((folder) => folder.toJson()).toList());
@@ -189,13 +218,13 @@ class _MyAppState extends State<MyApp> {
   }
 
   List<_PictureData> _filteredPictures() {
+    List<_PictureData> displayedPictures = currentFolderName != null ? getFolderPictures(currentFolderName!) : [];
     if (_searchQuery.isEmpty) {
-      return _pictures;
+      return displayedPictures;
     }
-
-    return _pictures.where((_PictureData picture) {
-      return picture.name.toLowerCase().contains(_searchQuery.toLowerCase());
-    }).toList();
+    return displayedPictures
+        .where((pictureData) => pictureData.name.toLowerCase().contains(_searchQuery.toLowerCase()))
+        .toList();
   }
 
   Future<void> _saveEmailTemplate(String newEmailTemplate) async {
@@ -500,6 +529,10 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    List<_PictureData> displayedPictures = [];
+    if (currentFolderName != null) {
+      displayedPictures = getFolderPictures(currentFolderName!);
+    }
     return MaterialApp(
       home: Builder(
         builder: (BuildContext context) {
@@ -521,8 +554,9 @@ class _MyAppState extends State<MyApp> {
                   ),
                 ),
               )
-                  : Text('DocScan'),
-              leading: IconButton(
+                  : (currentFolderName == null ? Text('DocScan') : Text('Ordner: $currentFolderName')),
+              leading: currentFolderName == null
+                  ? IconButton(
                 icon: const Icon(Icons.settings_rounded),
                 onPressed: () {
                   Navigator.push(
@@ -538,6 +572,14 @@ class _MyAppState extends State<MyApp> {
                       ),
                     ),
                   );
+                },
+              )
+                  : IconButton(
+                icon: Icon(Icons.arrow_back),
+                onPressed: () {
+                  setState(() {
+                    currentFolderName = null;
+                  });
                 },
               ),
               actions: [
@@ -577,7 +619,12 @@ class _MyAppState extends State<MyApp> {
               children: [
                 if (_isBannerAdReady)
                   Container(
-                    child: AdWidget(ad: _bannerAd),
+                    child: Column(
+                      children: [
+                        Text(currentFolderName != null ? 'Ordner: $currentFolderName' : 'Kein Ordner ausgewählt'),
+                        AdWidget(ad: _bannerAd),
+                      ],
+                    ),
                     width: screenWidth,
                     height: _bannerAd.size.height.toDouble(),
                     alignment: Alignment.center,
@@ -720,7 +767,6 @@ class _MyAppState extends State<MyApp> {
                 },
               ),
             ),
-
           );
         },
       ),
@@ -822,6 +868,7 @@ class _MyAppState extends State<MyApp> {
               name: document.name,
               date: document.date,
               path: newPath,
+              folderName: currentFolderName,  // Wenn currentFolderName null ist, wird auch folderName null sein
             ));
           });
           savePictures();
@@ -839,7 +886,7 @@ class _MyAppState extends State<MyApp> {
     final imageName = '${_defaultDocumentName}_${_documentCounter - 1}_$formattedDate';
 
     try {
-      final List<String>? documentPaths = await CunningDocumentScanner.getPictures(); // Verwenden Sie die getPictures-Methode
+      final List<String>? documentPaths = await CunningDocumentScanner.getPictures();
 
       if (documentPaths != null && documentPaths.isNotEmpty) {
         for (String path in documentPaths) {
@@ -849,6 +896,7 @@ class _MyAppState extends State<MyApp> {
               name: imageName,
               date: formattedDate,
               path: newPath,
+              folderName: currentFolderName,  // Wenn currentFolderName null ist, wird auch folderName null sein
             ));
           });
           savePictures();
@@ -988,6 +1036,7 @@ class _PictureData {
   bool shared;
   bool selected;
   FileType fileType;
+  String? folderName;
 
   _PictureData({
     required this.name,
@@ -995,7 +1044,8 @@ class _PictureData {
     required this.path,
     this.shared = false,
     this.selected = false,
-    this.fileType = FileType.jpg,  // Default file type is jpg
+    this.fileType = FileType.jpg,// Default file type is jpg
+    this.folderName,
   });
 
   _PictureData updatePath(String newPath) {
@@ -1006,6 +1056,7 @@ class _PictureData {
       shared: this.shared, // Fügen Sie den aktuellen shared Status hinzu
       selected: this.selected, // Fügen Sie den aktuellen selected Status hinzu
       fileType: this.fileType,
+      folderName: this.folderName
     );
   }
 }
