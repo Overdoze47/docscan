@@ -21,7 +21,6 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pdfWidgets;
 import 'package:path_provider/path_provider.dart';
 
-
 class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
 
@@ -62,9 +61,19 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+
   void _onFolderNameClicked(Folder folder) {
     setState(() {
       _selectedFolder = folder;
+    });
+  }
+
+  void addScan(_PictureData scan) {
+    setState(() {
+      _pictures.add(scan);
+      if (currentFolderName == null) {
+        _displayedPictures.add(scan);
+      }
     });
   }
 
@@ -201,7 +210,11 @@ class _MyAppState extends State<MyApp> {
 
   void updateDisplayedPictures(String folderName) {
     setState(() {
-      _displayedPictures = getFolderPictures(folderName);
+      if (folderName == _defaultDocumentName) {
+        _displayedPictures = _pictures;
+      } else {
+        _displayedPictures = getFolderPictures(folderName);
+      }
     });
   }
 
@@ -248,6 +261,7 @@ class _MyAppState extends State<MyApp> {
     _loadFolders();
     _loadEmailTemplate();
     initPlatformState();
+    loadPictures();
 
     _loadDefaultDocumentName().then((value) {
       setState(() {
@@ -313,6 +327,32 @@ class _MyAppState extends State<MyApp> {
   Future<void> _saveDefaultDocumentName(String defaultDocumentName) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('defaultDocumentName', defaultDocumentName);
+  }
+
+  Future<void> loadPictures() async {
+    final prefs = await SharedPreferences.getInstance();
+    final picturesList = prefs.getStringList('pictures') ?? [];
+    print('Loaded ${picturesList.length} pictures from SharedPreferences');
+
+    setState(() {
+      _pictures = picturesList.map((item) {
+        Map<String, dynamic> data = jsonDecode(item);
+        return _PictureData.fromJson(data);
+      }).toList();
+
+      // Erzeugt eine Liste von Folder Objekten aus den Bildern
+      _folders = _foldersFromPictures(_pictures);
+
+      print('Generated ${_folders.length} folders from pictures');
+      for (Folder folder in _folders) {
+        print('Folder ${folder.name} contains ${folder.images.length} pictures');
+      }
+
+      // Wenn kein Ordner ausgewählt ist, zeige alle Bilder
+      if (currentFolderName == null) {
+        _displayedPictures = _pictures;
+      }
+    });
   }
 
   Future<String> _loadDefaultDocumentName() async {
@@ -482,11 +522,33 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
+  List<Folder> _foldersFromPictures(List<_PictureData> pictures) {
+    // Erstellt eine Map von Ordnernamen zu ihren Bildern
+    Map<String, List<_PictureData>> folderMap = {};
+    for (_PictureData picture in pictures) {
+      final folderName = picture.folderName ?? 'No Folder';
+      if (!folderMap.containsKey(folderName)) {
+        folderMap[folderName] = [];
+      }
+      folderMap[folderName]!.add(picture);
+    }
+
+    // Erzeugt eine Liste von Folder Objekten aus der Map
+    List<Folder> folders = [];
+    for (String folderName in folderMap.keys) {
+      Folder folder = Folder(name: folderName, images: []);
+      folder.addImages(folderMap[folderName]!);
+      folders.add(folder);
+    }
+
+    return folders;
+  }
+
   Future<void> savePictures() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setInt('documentCounter', _documentCounter);
     prefs.setStringList('pictures', _pictures.map<String>((item) {
-      return '${item.name}|${item.date}|${item.path}';
+      return jsonEncode(item.toJson());
     }).toList());
   }
 
@@ -870,6 +932,9 @@ class _MyAppState extends State<MyApp> {
               path: newPath,
               folderName: currentFolderName,  // Wenn currentFolderName null ist, wird auch folderName null sein
             ));
+
+            // Aktualisieren Sie die _folders Liste
+            _folders = _foldersFromPictures(_pictures);
           });
           savePictures();
           _documentCounter++;
@@ -1007,6 +1072,10 @@ class Folder {
   String name;
   List<String> images;
 
+  void addImages(List<_PictureData> images) {
+    this.images.addAll(images.map((image) => image.path));
+  }
+
   Folder({required this.name, required this.images});
 
   Folder.fromJson(Map<String, dynamic> json)
@@ -1047,6 +1116,25 @@ class _PictureData {
     this.fileType = FileType.jpg,// Default file type is jpg
     this.folderName,
   });
+
+  _PictureData.fromJson(Map<String, dynamic> json)
+      : name = json['name'],
+        date = json['date'],
+        path = json['path'],
+        shared = json['shared'] ?? false,
+        selected = json['selected'] ?? false,
+        fileType = FileType.values[json['fileType'] ?? 0],
+        folderName = json['folderName'];
+
+  Map<String, dynamic> toJson() => {
+    'name': name,
+    'date': date,
+    'path': path,
+    'shared': shared,
+    'selected': selected,
+    'fileType': fileType.index,
+    'folderName': folderName,
+  };
 
   _PictureData updatePath(String newPath) {
     return _PictureData(
