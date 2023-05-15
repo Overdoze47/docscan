@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class SettingsPage extends StatefulWidget {
   final String defaultDocumentName;
@@ -56,6 +60,116 @@ class _SettingsPageState extends State<SettingsPage> {
   void _onEmailTemplateChanged(String newEmailTemplate) {
     widget.onEmailTemplateChanged(newEmailTemplate);
   }
+
+  void exportData() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      Map<String, dynamic> allData = prefs.getKeys().toList().asMap().map((key, value) => MapEntry(value, prefs.get(value)));
+      String jsonData = jsonEncode(allData);
+      Directory? downloadsDirectory = await getDownloadsDirectory();
+      if (downloadsDirectory != null) {
+        File backupFile = File('${downloadsDirectory.path}/backup.json');
+        await backupFile.writeAsString(jsonData);
+      }
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Fehler beim Exportieren der Daten: $error'),
+        ),
+      );
+    }
+  }
+
+  void importData() async {
+    try {
+      Directory? downloadsDirectory = await getDownloadsDirectory();
+      if (downloadsDirectory != null) {
+        File backupFile = File('${downloadsDirectory.path}/backup.json');
+        if(await backupFile.exists()){
+          String jsonData = await backupFile.readAsString();
+          Map<String, dynamic> allData = jsonDecode(jsonData);
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          allData.forEach((key, value) async {
+            if(value is bool){
+              await prefs.setBool(key, value);
+            } else if(value is String){
+              await prefs.setString(key, value);
+            } else if(value is int){
+              await prefs.setInt(key, value);
+            } else if(value is double){
+              await prefs.setDouble(key, value);
+            } else if(value is List<String>){
+              await prefs.setStringList(key, value);
+            }
+          });
+        }
+      }
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Fehler beim Importieren der Daten: $error'),
+        ),
+      );
+    }
+  }
+
+  void _confirmAndDeleteAllData(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Datenlöschung'),
+          content: Text('Sind Sie sicher, dass Sie alle Daten löschen möchten?'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Abbrechen'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Löschen'),
+              onPressed: () {
+                _deleteAllData();
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteAllData() async {
+    try {
+      // Löschen Sie die Daten aus den SharedPreferences
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+
+      // Löschen Sie alle Dateien in einem bestimmten Pfad
+      Directory directory = await getApplicationDocumentsDirectory();  // oder einen anderen Pfad
+      var files = directory.listSync();
+      for (var file in files) {
+        if (file is File) {
+          print('Deleting file ${file.path}');
+          await file.delete();
+        }
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Alle Daten wurden erfolgreich gelöscht'),
+        ),
+      );
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Fehler beim Löschen der Daten: $error'),
+        ),
+      );
+    }
+  }
+
 
   void _sendFeedbackEmail() async {
     final Email email = Email(
@@ -130,6 +244,46 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 const SizedBox(height: 20),
                 const Text(
+                  'Sicherung',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly, // optional, um die Buttons gleichmäßig über die Zeile zu verteilen
+                  children: <Widget>[
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: ElevatedButton(
+                          onPressed: exportData,
+                          child: const Text('Daten exportieren'),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: ElevatedButton(
+                          onPressed: importData,
+                          child: const Text('Daten importieren'),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Datenlöschung',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ElevatedButton(
+                    onPressed: () => _confirmAndDeleteAllData(context),  // Changed this line
+                    child: const Text('Alle Daten löschen'),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
                   'Bildkomprimierung',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
@@ -169,4 +323,3 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 }
-
