@@ -87,6 +87,7 @@ class _FullScreenImageState extends State<FullScreenImage> {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Color(0xff005874),
         title: ValueListenableBuilder<String>(
           valueListenable: widget.name,
           builder: (context, value, child) {

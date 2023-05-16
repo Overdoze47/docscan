@@ -425,9 +425,17 @@ class _SettingsPageState extends State<SettingsPage> {
                                 },
                                 activeColor: Color(0xff235276),  // Ändert die Farbe, wenn der Switch aktiv ist
                                 inactiveThumbColor: Colors.grey,  // Ändert die Farbe des Daumens, wenn der Switch inaktiv ist
-                                inactiveTrackColor: Colors.grey[300],  // Ändert die Farbe der Schiene, wenn der Switch inaktiv ist
+                                inactiveTrackColor: Colors.grey[300],
                               ),
                             ),
+                            if (!widget.imageCompression)
+                              const Padding(
+                                padding: EdgeInsets.only(left: 16),
+                                child: Text(
+                                  "Scans mit größeren Speicherverbrauch, führen zu längeren Ladezeiten",
+                                  style: TextStyle(fontSize: 14, color: Colors.red),
+                                ),
+                              ),
                           ],
                         ),
                       ),
