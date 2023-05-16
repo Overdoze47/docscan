@@ -305,17 +305,47 @@ class _SettingsPageState extends State<SettingsPage> {
                       style: TextStyle(fontSize: 14, color: Colors.red),
                     ),
                   ),
+                SwitchListTile(
+                  title: const Text('Für alte Scans'),
+                  value: widget.imageCompression,
+                  onChanged: (bool value) {
+                    setState(() {
+                      widget.onImageCompressionChanged(value);
+                      setImageCompression(value);  // Setzen Sie den neuen Wert in SharedPreferences
+                    });
+                  },
+                ),
+                if (!widget.imageCompression)
+                  const Padding(
+                    padding: EdgeInsets.only(left: 16),
+                    child: Text(
+                      "Scans mit größeren Speicherverbrauch, führen zu längeren Ladezeiten.",
+                      style: TextStyle(fontSize: 14, color: Colors.red),
+                    ),
+                  ),
               ],
             ),
           ),
           Align(
             alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: ElevatedButton(
-                onPressed: _sendFeedbackEmail,
-                child: const Text('Feedback senden'),
-              ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: ElevatedButton(
+                    onPressed: _sendFeedbackEmail,
+                    child: const Text('Feedback senden'),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: ElevatedButton(
+                    onPressed: _sendFeedbackEmail, // Sie können hier auch eine andere Funktion angeben.
+                    child: const Text('Feedback senden'), // Sie können hier auch einen anderen Text angeben.
+                  ),
+                ),
+              ],
             ),
           ),
         ],
