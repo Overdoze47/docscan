@@ -484,7 +484,7 @@ class _MyAppState extends State<MyApp> {
                   child: Column(
                     children: [
                       Image.asset(
-                        'assets/share.png',
+                        'assets/data-transfer.png',
                         width: 56,
                         height: 56,
                         fit: BoxFit.cover,

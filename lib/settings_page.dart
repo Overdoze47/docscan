@@ -243,6 +243,54 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                       ),
                     ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Align(
+                          alignment: Alignment.topCenter,
+                          child: Image.asset(
+                            'assets/like_app.png',
+                            width: 100,  // Sie können die Größe des Bildes hier anpassen
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        SizedBox(
+                          width: 16,  // Optional, fügt etwas Platz zwischen dem Bild und der Karte hinzu
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Card(
+                            elevation: 4.0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15.0),
+                            ),
+                            margin: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  const Text(
+                                    'Bewertung',
+                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: ElevatedButton(
+                                      onPressed: _sendFeedbackEmail,
+                                      style: ElevatedButton.styleFrom(
+                                        primary: Color(0xff235276), // Background color
+                                      ),
+                                      child: const Text('Feedback'),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                     Card(
                       elevation: 4.0,
                       shape: RoundedRectangleBorder(
