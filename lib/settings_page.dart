@@ -194,6 +194,7 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Color(0xff005874),
         title: const Text('Einstellungen'),
       ),
       body: Column(
@@ -233,6 +234,9 @@ class _SettingsPageState extends State<SettingsPage> {
                                   const SnackBar(content: Text('Standardname gespeichert.')),
                                 );
                               },
+                              style: ElevatedButton.styleFrom(
+                                primary: Color(0xff235276), // Background color
+                              ),
                               child: const Text('Speichern'),
                             ),
                           ],
@@ -267,6 +271,9 @@ class _SettingsPageState extends State<SettingsPage> {
                                   const SnackBar(content: Text('E-Mail Vorlage gespeichert.')),
                                 );
                               },
+                              style: ElevatedButton.styleFrom(
+                                primary: Color(0xff235276), // Background color
+                              ),
                               child: const Text('Speichern'),
                             ),
                           ],
@@ -296,6 +303,9 @@ class _SettingsPageState extends State<SettingsPage> {
                                     padding: const EdgeInsets.all(8.0),
                                     child: ElevatedButton(
                                       onPressed: exportData,
+                                      style: ElevatedButton.styleFrom(
+                                        primary: Color(0xff235276), // Background color
+                                      ),
                                       child: const Text('Daten exportieren'),
                                     ),
                                   ),
@@ -305,6 +315,9 @@ class _SettingsPageState extends State<SettingsPage> {
                                     padding: const EdgeInsets.all(8.0),
                                     child: ElevatedButton(
                                       onPressed: importData,
+                                      style: ElevatedButton.styleFrom(
+                                        primary: Color(0xff235276), // Background color
+                                      ),
                                       child: const Text('Daten importieren'),
                                     ),
                                   ),
@@ -316,31 +329,50 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    Card(
-                      elevation: 4.0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15.0),
-                      ),
-                      margin: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Datenlöschung',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 2, // Hier können Sie die Breite der Karte anpassen.
+                          child: Card(
+                            elevation: 4.0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15.0),
                             ),
-                            Padding(
+                            margin: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: Padding(
                               padding: const EdgeInsets.all(8.0),
-                              child: ElevatedButton(
-                                onPressed: () => _confirmAndDeleteAllData(context),
-                                child: const Text('Alle Daten löschen'),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Datenlöschung',
+                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: ElevatedButton(
+                                      onPressed: () => _confirmAndDeleteAllData(context),
+                                      style: ElevatedButton.styleFrom(
+                                        primary: Color(0xff235276), // Background color
+                                      ),
+                                      child: const Text('Alles löschen'),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ],
+                          ),
                         ),
-                      ),
+                        Expanded(
+                          flex: 2,
+                          child: Container(
+                            height: 120.0,
+                            padding: const EdgeInsets.all(8.0),
+                            child: Image.asset('assets/setting_icon.png'),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 20),
                     Card(
@@ -358,15 +390,20 @@ class _SettingsPageState extends State<SettingsPage> {
                               'Bildkomprimierung',
                               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                             ),
-                            SwitchListTile(
+                            ListTile(
                               title: const Text('Für neue Scans'),
-                              value: widget.imageCompression,
-                              onChanged: (bool value) {
-                                setState(() {
-                                  widget.onImageCompressionChanged(value);
-                                  setImageCompression(value);
-                                });
-                              },
+                              trailing: Switch(
+                                value: widget.imageCompression,
+                                onChanged: (bool value) {
+                                  setState(() {
+                                    widget.onImageCompressionChanged(value);
+                                    setImageCompression(value);
+                                  });
+                                },
+                                activeColor: Color(0xff235276),  // Ändert die Farbe, wenn der Switch aktiv ist
+                                inactiveThumbColor: Colors.grey,  // Ändert die Farbe des Daumens, wenn der Switch inaktiv ist
+                                inactiveTrackColor: Colors.grey[300],  // Ändert die Farbe der Schiene, wenn der Switch inaktiv ist
+                              ),
                             ),
                             if (!widget.imageCompression)
                               const Padding(
@@ -376,24 +413,21 @@ class _SettingsPageState extends State<SettingsPage> {
                                   style: TextStyle(fontSize: 14, color: Colors.red),
                                 ),
                               ),
-                            SwitchListTile(
+                            ListTile(
                               title: const Text('Für alte Scans'),
-                              value: widget.imageCompression,
-                              onChanged: (bool value) {
-                                setState(() {
-                                  widget.onImageCompressionChanged(value);
-                                  setImageCompression(value);
-                                });
-                              },
-                            ),
-                            if (!widget.imageCompression)
-                              const Padding(
-                                padding: EdgeInsets.only(left: 16),
-                                child: Text(
-                                  "Scans mit größeren Speicherverbrauch, führen zu längeren Ladezeiten.",
-                                  style: TextStyle(fontSize: 14, color: Colors.red),
-                                ),
+                              trailing: Switch(
+                                value: widget.imageCompression,
+                                onChanged: (bool value) {
+                                  setState(() {
+                                    widget.onImageCompressionChanged(value);
+                                    setImageCompression(value);
+                                  });
+                                },
+                                activeColor: Color(0xff235276),  // Ändert die Farbe, wenn der Switch aktiv ist
+                                inactiveThumbColor: Colors.grey,  // Ändert die Farbe des Daumens, wenn der Switch inaktiv ist
+                                inactiveTrackColor: Colors.grey[300],  // Ändert die Farbe der Schiene, wenn der Switch inaktiv ist
                               ),
+                            ),
                           ],
                         ),
                       ),
@@ -410,6 +444,9 @@ class _SettingsPageState extends State<SettingsPage> {
       padding: const EdgeInsets.all(8.0),
       child: ElevatedButton(
       onPressed: _sendFeedbackEmail,
+        style: ElevatedButton.styleFrom(
+          primary: Color(0xff235276), // Background color
+        ),
       child: const Text('Feedback'),
       ),
       ),
@@ -419,7 +456,10 @@ class _SettingsPageState extends State<SettingsPage> {
       child: Padding(
       padding: const EdgeInsets.all(8.0),
     child: ElevatedButton(
-    onPressed: _sendFeedbackEmail, // Sie können hier auch eine andere Funktion angeben.
+    onPressed: _sendFeedbackEmail,
+      style: ElevatedButton.styleFrom(
+        primary: Color(0xff235276), // Background color
+      ),
     child: const Text('Datenschutz'),
                     ),
                   ),

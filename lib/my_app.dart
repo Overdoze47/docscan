@@ -616,6 +616,7 @@ class _MyAppState extends State<MyApp> {
           double screenWidth = MediaQuery.of(context).size.width;
           return Scaffold(
             appBar: AppBar(
+              backgroundColor: Color(0xff005874),
               title: _isSearching
                   ? Expanded(
                 child: TextField(
@@ -824,15 +825,17 @@ class _MyAppState extends State<MyApp> {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       FloatingActionButton(
-                        onPressed: () => _showFolderDialog(context), // Hier den Kontext übergeben
+                        onPressed: () => _showFolderDialog(context),
                         tooltip: 'Ordner anzeigen',
                         child: Icon(Icons.folder),
+                        backgroundColor: Color(0xff235276),
                       ),
                       SizedBox(height: 16),  // Abstand zwischen den Buttons
                       FloatingActionButton(
                         onPressed: _onCameraButtonPressed,
                         tooltip: 'Bilder hinzufügen',
                         child: Icon(Icons.camera_alt),
+                        backgroundColor: Color(0xff235276),
                       ),
                     ],
                   );
