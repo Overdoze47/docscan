@@ -692,16 +692,11 @@ class _MyAppState extends State<MyApp> {
                 ),
               ],
             ),
-            body : Column(
+            body: Column(
               children: [
                 if (_isBannerAdReady)
                   Container(
-                    child: Column(
-                      children: [
-                        Text(currentFolderName != null ? 'Ordner: $currentFolderName' : 'Kein Ordner ausgewählt'),
-                        AdWidget(ad: _bannerAd),
-                      ],
-                    ),
+                    child: AdWidget(ad: _bannerAd),
                     width: screenWidth,
                     height: _bannerAd.size.height.toDouble(),
                     alignment: Alignment.center,
