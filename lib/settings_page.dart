@@ -196,160 +196,173 @@ class _SettingsPageState extends State<SettingsPage> {
       appBar: AppBar(
         title: const Text('Einstellungen'),
       ),
-      body: Stack(
+      body: Column(
+          children: [
+      Expanded(
+      child: SingleChildScrollView(
+      child: Padding(
+          padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Standardname Scandatei',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                TextField(
-                  controller: _defaultNameController,
-                  decoration: const InputDecoration(
-                    hintText: 'Standardname eingeben',
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    _onDefaultNameChanged(_defaultNameController.text);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Standardname gespeichert.')),
-                    );
-                  },
-                  child: const Text('Speichern'),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'E-Mail Vorlage',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                TextField(
-                  controller: _emailTemplateController,
-                  decoration: const InputDecoration(
-                    hintText: 'Standard E-Mail Text eingeben',
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    _onEmailTemplateChanged(_emailTemplateController.text);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('E-Mail Vorlage gespeichert.')),
-                    );
-                  },
-                  child: const Text('Speichern'),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Sicherung',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly, // optional, um die Buttons gleichmäßig über die Zeile zu verteilen
-                  children: <Widget>[
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: ElevatedButton(
-                          onPressed: exportData,
-                          child: const Text('Daten exportieren'),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: ElevatedButton(
-                          onPressed: importData,
-                          child: const Text('Daten importieren'),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Datenlöschung',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                Padding(
+          const Text(
+            'Standardname Scandatei',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          TextField(
+            controller: _defaultNameController,
+            decoration: const InputDecoration(
+              hintText: 'Standardname eingeben',
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              _onDefaultNameChanged(_defaultNameController.text);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Standardname gespeichert.')),
+              );
+            },
+            child: const Text('Speichern'),
+          ),
+          const SizedBox(height: 20),
+          const Text(
+            'E-Mail Vorlage',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          TextField(
+            controller: _emailTemplateController,
+            decoration: const InputDecoration(
+              hintText: 'Standard E-Mail Text eingeben',
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              _onEmailTemplateChanged(_emailTemplateController.text);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('E-Mail Vorlage gespeichert.')),
+              );
+            },
+            child: const Text('Speichern'),
+          ),
+          const SizedBox(height: 20),
+          const Text(
+            'Sicherung',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+              Expanded(
+                child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: ElevatedButton(
-                    onPressed: () => _confirmAndDeleteAllData(context),  // Changed this line
-                    child: const Text('Alle Daten löschen'),
+                    onPressed: exportData,
+                    child: const Text('Daten exportieren'),
                   ),
                 ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Bildkomprimierung',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                SwitchListTile(
-                  title: const Text('Für neue Scans'),
-                  value: widget.imageCompression,
-                  onChanged: (bool value) {
-                    setState(() {
-                      widget.onImageCompressionChanged(value);
-                      setImageCompression(value);  // Setzen Sie den neuen Wert in SharedPreferences
-                    });
-                  },
-                ),
-                if (!widget.imageCompression)
-                  const Padding(
-                    padding: EdgeInsets.only(left: 16),
-                    child: Text(
-                      "Scans mit größeren Speicherverbrauch, führen zu längeren Ladezeiten.",
-                      style: TextStyle(fontSize: 14, color: Colors.red),
-                    ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ElevatedButton(
+                    onPressed: importData,
+                    child: const Text('Daten importieren'),
                   ),
-                SwitchListTile(
-                  title: const Text('Für alte Scans'),
-                  value: widget.imageCompression,
-                  onChanged: (bool value) {
-                    setState(() {
-                      widget.onImageCompressionChanged(value);
-                      setImageCompression(value);  // Setzen Sie den neuen Wert in SharedPreferences
-                    });
-                  },
                 ),
-                if (!widget.imageCompression)
-                  const Padding(
-                    padding: EdgeInsets.only(left: 16),
-                    child: Text(
-                      "Scans mit größeren Speicherverbrauch, führen zu längeren Ladezeiten.",
-                      style: TextStyle(fontSize: 14, color: Colors.red),
-                    ),
-                  ),
-              ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          const Text(
+            'Datenlöschung',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: ElevatedButton(
+              onPressed: () => _confirmAndDeleteAllData(context),
+              child: const Text('Alle Daten löschen'),
             ),
           ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: ElevatedButton(
-                    onPressed: _sendFeedbackEmail,
-                    child: const Text('Feedback senden'),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: ElevatedButton(
-                    onPressed: _sendFeedbackEmail, // Sie können hier auch eine andere Funktion angeben.
-                    child: const Text('Feedback senden'), // Sie können hier auch einen anderen Text angeben.
-                  ),
-                ),
-              ],
-            ),
+          const SizedBox(height: 20),
+          const Text(
+            'Bildkomprimierung',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
+          SwitchListTile(
+            title: const Text('Für neue Scans'),
+            value: widget.imageCompression,
+            onChanged: (bool value) {
+              setState(() {
+                widget.onImageCompressionChanged(value);
+                setImageCompression(value);
+              });
+            },
+          ),
+          if (!widget.imageCompression)
+            const Padding(
+              padding: EdgeInsets.only(left: 16),
+              child: Text(
+                "Scans mit größeren Speicherverbrauch, führen zu längeren Ladezeiten",
+                style: TextStyle(fontSize: 14, color: Colors.red),
+              ),
+            ),
+    SwitchListTile(
+    title: const Text('Für alte Scans'),
+    value: widget.imageCompression,
+      onChanged: (bool value) {
+        setState(() {
+          widget.onImageCompressionChanged(value);
+          setImageCompression(value);
+        });
+      },
+    ),
+          if (!widget.imageCompression)
+            const Padding(
+              padding: EdgeInsets.only(left: 16),
+              child: Text(
+                "Scans mit größeren Speicherverbrauch, führen zu längeren Ladezeiten.",
+                style: TextStyle(fontSize: 14, color: Colors.red),
+              ),
+            ),
         ],
+      ),
+      ),
+      ),
+      ),
+            Align(
+      alignment: Alignment.bottomCenter,
+      child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+      Expanded(
+      child: Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: ElevatedButton(
+      onPressed: _sendFeedbackEmail,
+      child: const Text('Feedback senden'),
+      ),
+      ),
+      ),
+      SizedBox(width: 16), // Dies erzeugt einen horizontalen Abstand zwischen den Buttons
+      Expanded(
+      child: Padding(
+      padding: const EdgeInsets.all(8.0),
+    child: ElevatedButton(
+    onPressed: _sendFeedbackEmail, // Sie können hier auch eine andere Funktion angeben.
+    child: const Text('Datenschutz'),
+                    ),
+                  ),
+                    ),
+                    ],
+              ),
+            ),
+            ),
+          ],
       ),
     );
   }
 }
+
