@@ -231,12 +231,21 @@ class _MyAppState extends State<MyApp> {
   }
 
   List<_PictureData> _filteredPictures() {
-    List<_PictureData> displayedPictures = currentFolderName != null ? getFolderPictures(currentFolderName!) : [];
-    if (_searchQuery.isEmpty) {
+    List<_PictureData> displayedPictures;
+
+    // Display only pictures without a folder if no folder is selected
+    if (currentFolderName == null) {
+      displayedPictures = _pictures.where((picture) => picture.folderName == null).toList();
+    } else {
+      displayedPictures = _pictures.where((picture) => picture.folderName == currentFolderName).toList();
+    }
+
+    if (_searchQuery?.isEmpty != false) {
       return displayedPictures;
     }
+
     return displayedPictures
-        .where((pictureData) => pictureData.name.toLowerCase().contains(_searchQuery.toLowerCase()))
+        .where((pictureData) => pictureData.name.toLowerCase().contains(_searchQuery!.toLowerCase()))
         .toList();
   }
 
@@ -526,11 +535,14 @@ class _MyAppState extends State<MyApp> {
     // Erstellt eine Map von Ordnernamen zu ihren Bildern
     Map<String, List<_PictureData>> folderMap = {};
     for (_PictureData picture in pictures) {
-      final folderName = picture.folderName ?? 'No Folder';
-      if (!folderMap.containsKey(folderName)) {
-        folderMap[folderName] = [];
+      // Ignoriert Bilder ohne Ordner
+      if (picture.folderName != null) {
+        String folderName = picture.folderName!;
+        if (!folderMap.containsKey(folderName)) {
+          folderMap[folderName] = [];
+        }
+        folderMap[folderName]!.add(picture);
       }
-      folderMap[folderName]!.add(picture);
     }
 
     // Erzeugt eine Liste von Folder Objekten aus der Map
@@ -543,6 +555,7 @@ class _MyAppState extends State<MyApp> {
 
     return folders;
   }
+
 
   Future<void> savePictures() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -594,6 +607,8 @@ class _MyAppState extends State<MyApp> {
     List<_PictureData> displayedPictures = [];
     if (currentFolderName != null) {
       displayedPictures = getFolderPictures(currentFolderName!);
+    } else {   // Wenn kein Ordner ausgewählt ist, zeigen Sie die Bilder im "Unsorted"-Ordner an
+      displayedPictures = getFolderPictures("Unsorted");
     }
     return MaterialApp(
       home: Builder(
@@ -774,9 +789,9 @@ class _MyAppState extends State<MyApp> {
                                               onChanged: (bool? value) {
                                                 setState(() {
                                                   pictureData.selected = value!;
-                                              });
-                                            },
-                                          ),
+                                                });
+                                              },
+                                            ),
                                           IconButton(
                                             icon: const Icon(Icons.add),
                                             onPressed: () => _addPictureToExistingDocument(context, pictureData),
@@ -925,15 +940,14 @@ class _MyAppState extends State<MyApp> {
       if (documentPaths != null && documentPaths.isNotEmpty) {
         for (String path in documentPaths) {
           final newPath = await _changeFileName(path, document.name);
-          setState(() {
+          setState(() { // <-- Aufruf von setState
             _pictures.add(_PictureData(
               name: document.name,
               date: document.date,
               path: newPath,
-              folderName: currentFolderName,  // Wenn currentFolderName null ist, wird auch folderName null sein
+              folderName: currentFolderName,
             ));
 
-            // Aktualisieren Sie die _folders Liste
             _folders = _foldersFromPictures(_pictures);
           });
           savePictures();
@@ -961,7 +975,7 @@ class _MyAppState extends State<MyApp> {
               name: imageName,
               date: formattedDate,
               path: newPath,
-              folderName: currentFolderName,  // Wenn currentFolderName null ist, wird auch folderName null sein
+              folderName: currentFolderName, // Setze folderName auf null, wenn kein Ordner ausgewählt ist
             ));
           });
           savePictures();
@@ -972,8 +986,6 @@ class _MyAppState extends State<MyApp> {
       print('Fehler beim Scannen des Dokuments: $e');
     }
   }
-
-
 
   void _openPicture(BuildContext context, String path, String name, FileType fileType) {
     _requestStoragePermission().then((_) {
@@ -1006,7 +1018,7 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
-  void _showUploadDialog(BuildContext context) {
+void _showUploadDialog(BuildContext context) {
   final _MyAppState state = context.findAncestorStateOfType<_MyAppState>()!;
 
   showDialog(
@@ -1087,7 +1099,7 @@ class Folder {
     'images': images,
   };
 }
-  // Erstellt Folder aus Map
+// Erstellt Folder aus Map
 Folder fromMap(Map<String, dynamic> map) {
   return Folder(
     name: map['name'],
@@ -1138,15 +1150,14 @@ class _PictureData {
 
   _PictureData updatePath(String newPath) {
     return _PictureData(
-      name: this.name,
-      date: this.date, // Fügen Sie das aktuelle date hinzu
-      path: newPath,
-      shared: this.shared, // Fügen Sie den aktuellen shared Status hinzu
-      selected: this.selected, // Fügen Sie den aktuellen selected Status hinzu
-      fileType: this.fileType,
-      folderName: this.folderName
+        name: this.name,
+        date: this.date, // Fügen Sie das aktuelle date hinzu
+        path: newPath,
+        shared: this.shared, // Fügen Sie den aktuellen shared Status hinzu
+        selected: this.selected, // Fügen Sie den aktuellen selected Status hinzu
+        fileType: this.fileType,
+        folderName: this.folderName
     );
   }
 }
-
 
