@@ -960,7 +960,7 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _onCameraButtonPressed() async {
     final date = DateTime.now();
-    final formattedDate = DateFormat('yyyyMMdd_HHmmss').format(date);
+    final formattedDate = DateFormat('dd.MM.yyyy HH:mm').format(date);
     final imageName = '${_defaultDocumentName}_${_documentCounter - 1}_$formattedDate';
 
     try {
