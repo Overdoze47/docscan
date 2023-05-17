@@ -1,10 +1,15 @@
 import 'dart:io';
+import 'dart:ui' as ui;
+import 'dart:async';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:doc/ad_helper.dart';
 import 'package:image/image.dart' as img;
 import 'my_app.dart';
+import 'package:hand_signature/signature.dart';
+import 'package:path_provider/path_provider.dart';
 
 class FullScreenImage extends StatefulWidget {
   final String path;
@@ -27,9 +32,17 @@ class FullScreenImage extends StatefulWidget {
 class _FullScreenImageState extends State<FullScreenImage> {
   late BannerAd _bannerAd;
   bool _isBannerAdReady = false;
+  String? _signedImagePath;
 
   img.Image? _image;
   img.Image? _filteredImage;
+
+  final HandSignatureControl _signatureControl = HandSignatureControl(
+    threshold: 3.0,
+    smoothRatio: 0.65,
+    velocityRange: 2.0,
+  );
+  bool _isSigning = false;
 
   @override
   void initState() {
@@ -66,11 +79,56 @@ class _FullScreenImageState extends State<FullScreenImage> {
     }
   }
 
-  void _applyFilter(void Function(img.Image) filter) {
-    if (_image != null) {
+  Future<void> _saveSignature() async {
+    if (_signatureControl.toPicture() != null) {
+      final data = await _signatureControl.toImage(color: Colors.black);
+      if (data == null) {
+        throw Exception('Die Daten der Signatur sind null!');
+      }
+
+      final signatureImage = await _loadImageFromBytes(data);
+
+      final originalBytes = await File(widget.path).readAsBytes();
+      final originalCodec = await ui.instantiateImageCodec(originalBytes);
+      final originalFrame = await originalCodec.getNextFrame();
+      final originalImage = originalFrame.image;
+
+      final recorder = ui.PictureRecorder();
+      final canvas = ui.Canvas(recorder, ui.Rect.fromLTWH(0, 0, originalImage.width.toDouble(), originalImage.height.toDouble()));
+
+      canvas.drawImage(originalImage, ui.Offset.zero, ui.Paint());
+      canvas.drawImage(signatureImage, ui.Offset.zero, ui.Paint());
+
+      final picture = recorder.endRecording();
+      final combinedImage = await picture.toImage(originalImage.width, originalImage.height);
+      final pngBytes = await combinedImage.toByteData(format: ui.ImageByteFormat.png);
+
+      final directory = await getTemporaryDirectory();
+      final signatureFile = File('${directory.path}/signed_image.png');
+      await signatureFile.writeAsBytes(pngBytes?.buffer.asUint8List() ?? Uint8List(0));
+
       setState(() {
-        _filteredImage = img.copyResize(_image!, width: 600);
-        filter(_filteredImage!);
+        _isSigning = false;
+        _signedImagePath = signatureFile.path;
+      });
+    }
+  }
+
+  Future<ui.Image> _loadImageFromBytes(ByteData data) async {
+    final completer = Completer<ui.Image>();
+    ui.decodeImageFromList(data.buffer.asUint8List(), (ui.Image img) {
+      completer.complete(img);
+    });
+    return completer.future;
+  }
+
+  Future<void> _saveSignedImage() async {
+    if (_signedImagePath != null) {
+      final signedImage = File(_signedImagePath!);
+      final originalImage = File(widget.path);
+      await originalImage.writeAsBytes(await signedImage.readAsBytes());
+      setState(() {
+        _signedImagePath = null;
       });
     }
   }
@@ -78,6 +136,7 @@ class _FullScreenImageState extends State<FullScreenImage> {
   @override
   void dispose() {
     _bannerAd.dispose();
+    _signatureControl.dispose();
     super.dispose();
   }
 
@@ -133,50 +192,92 @@ class _FullScreenImageState extends State<FullScreenImage> {
           ),
         ],
       ),
-      body: Column(
+      body: Stack(
         children: [
-          if (_isBannerAdReady)
-            Container(
-              child: AdWidget(ad: _bannerAd),
-              width: screenWidth,
-              height: _bannerAd.size.height.toDouble(),
-              alignment: Alignment.center,
-            ),
-          Expanded(
-            child: Center(
-              child: widget.fileType == FileType.jpg // Überprüfen Sie den Dateityp
-                  ? _filteredImage != null
-                  ? InteractiveViewer(
-                child: Image.memory(
-                  img.encodeJpg(_filteredImage!),
-                  errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                    return const Text('Fehler beim Laden des Bildes');
-                  },
+          Column(
+            children: [
+              if (_isBannerAdReady)
+                Container(
+                  child: AdWidget(ad: _bannerAd),
+                  width: screenWidth,
+                  height: _bannerAd.size.height.toDouble(),
+                  alignment: Alignment.center,
                 ),
-              )
-                  : CircularProgressIndicator()
-                  : PDFView( // Verwenden Sie PDFView für PDFs
-                filePath: widget.path,
-                enableSwipe: true,
-                swipeHorizontal: true,
-                autoSpacing: false,
-                pageFling: false,
-                onError: (error) {
-                  print(error.toString());
-                },
-                onPageError: (page, error) {
-                  print('$page: ${error.toString()}');
-                },
-                onViewCreated: (PDFViewController pdfViewController) {
-                  // Optionaler Code, der ausgeführt wird, sobald die PDF-Ansicht erstellt wurde
-                },
-                onRender: (_pages) {
-                  // Optionaler Code, der ausgeführt wird, sobald die PDF gerendert wurde
-                },
+              Expanded(
+                child: Center(
+                  child: widget.fileType == FileType.jpg
+                      ? _filteredImage != null
+                      ? InteractiveViewer(
+                    child: _signedImagePath != null
+                        ? Image.file(
+                      File(_signedImagePath!),
+                      errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                        return const Text('Fehler beim Laden des Bildes');
+                      },
+                    )
+                        : Image.memory(
+                      img.encodeJpg(_filteredImage!),
+                      errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                        return const Text('Fehler beim Laden des Bildes');
+                      },
+                    ),
+                  )
+                      : CircularProgressIndicator()
+                      : PDFView(
+                    filePath: widget.path,
+                    enableSwipe: true,
+                    swipeHorizontal: true,
+                    autoSpacing: false,
+                    pageFling: false,
+                    onError: (error) {
+                      print(error.toString());
+                    },
+                    onPageError: (page, error) {
+                      print('$page: ${error.toString()}');
+                    },
+                    onViewCreated: (PDFViewController pdfViewController) {
+                      // Optionaler Code, der ausgeführt wird, sobald die PDF-Ansicht erstellt wurde
+                    },
+                    onRender: (_pages) {
+                      // Optionaler Code, der ausgeführt wird, sobald die PDF gerendert wurde
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (_isSigning)
+            Positioned.fill(
+              child: Container(
+                color: Colors.white.withOpacity(0.5),
+                child: HandSignature(
+                  control: _signatureControl,
+                  color: Color(0xff235276),
+                  type: SignatureDrawType.shape,
+                ),
               ),
             ),
-          ),
         ],
+      ),
+      floatingActionButton: _signedImagePath != null
+          ? FloatingActionButton(
+        onPressed: _saveSignedImage,
+        tooltip: 'Speichern',
+        child: Icon(Icons.save),
+        backgroundColor: Color(0xff235276),
+      )
+          : _isSigning
+          ? FloatingActionButton(
+        onPressed: _saveSignature,
+        tooltip: 'Unterschrift speichern',
+        child: Icon(Icons.check),
+        backgroundColor: Color(0xff235276),
+      )
+          : FloatingActionButton(
+        onPressed: () => setState(() => _isSigning = true),
+        tooltip: 'Unterschreiben',
+        child: Icon(Icons.edit_note_rounded),
+        backgroundColor: Color(0xff235276),
       ),
     );
   }
