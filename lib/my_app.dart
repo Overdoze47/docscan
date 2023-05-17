@@ -788,10 +788,11 @@ class _MyAppState extends State<MyApp> {
                                                 });
                                               },
                                             ),
-                                          IconButton(
-                                            icon: const Icon(Icons.add),
-                                            onPressed: () => _addPictureToExistingDocument(context, pictureData),
-                                          ),
+                                          if (pictureData.fileType == FileType.pdf)
+                                            IconButton(
+                                              icon: const Icon(Icons.add),
+                                              onPressed: () => _addPictureToExistingDocument(context, pictureData),
+                                            ),
                                           IconButton(
                                             icon: const Icon(Icons.share),
                                             onPressed: () => _shareFile(context, pictureData.path),
@@ -959,7 +960,7 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _onCameraButtonPressed() async {
     final date = DateTime.now();
-    final formattedDate = DateFormat('yyyyMMdd_HHmmss').format(date);
+    final formattedDate = DateFormat('dd.MM.yyyy HH:mm').format(date);
     final imageName = '${_defaultDocumentName}_${_documentCounter - 1}_$formattedDate';
 
     try {
@@ -1158,4 +1159,3 @@ class _PictureData {
     );
   }
 }
-
