@@ -788,10 +788,11 @@ class _MyAppState extends State<MyApp> {
                                                 });
                                               },
                                             ),
-                                          IconButton(
-                                            icon: const Icon(Icons.add),
-                                            onPressed: () => _addPictureToExistingDocument(context, pictureData),
-                                          ),
+                                          if (pictureData.fileType == FileType.pdf)
+                                            IconButton(
+                                              icon: const Icon(Icons.add),
+                                              onPressed: () => _addPictureToExistingDocument(context, pictureData),
+                                            ),
                                           IconButton(
                                             icon: const Icon(Icons.share),
                                             onPressed: () => _shareFile(context, pictureData.path),
@@ -1158,4 +1159,3 @@ class _PictureData {
     );
   }
 }
-
