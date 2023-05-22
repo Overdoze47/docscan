@@ -782,7 +782,7 @@ class _MyAppState extends State<MyApp> {
                                           if (_isPdfConversionMode)
                                             Checkbox(
                                               value: pictureData.selected,
-                                              onChanged: (bool? value) {
+                                              onChanged: !_isPdfConversionMode || pictureData.fileType != FileType.jpg ? null : (bool? value) {
                                                 setState(() {
                                                   pictureData.selected = value!;
                                                 });
