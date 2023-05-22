@@ -886,6 +886,9 @@ class _MyAppState extends State<MyApp> {
       });
     }
 
+    // Save pictures to SharedPreferences after converting images to pdf
+    savePictures();
+
     // Deaktivieren Sie den PDF-Konvertierungsmodus
     setState(() {
       _isPdfConversionMode = false;
