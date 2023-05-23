@@ -227,223 +227,299 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Color(0xff005874),
-        title: const Text('Einstellungen'),
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Card(
-                      elevation: 4.0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15.0),
-                      ),
-                      margin: const EdgeInsets.symmetric(vertical: 8.0),
+        appBar: AppBar(
+          backgroundColor: Color(0xff005874),
+          title: const Text('Einstellungen'),
+        ),
+        body: Column(
+            children: [
+              Expanded(
+                  child: SingleChildScrollView(
                       child: Padding(
-                        padding: const EdgeInsets.all(8.0),
+                        padding: const EdgeInsets.all(16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Standardname Scandatei',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                            TextField(
-                              controller: _defaultNameController,
-                              decoration: const InputDecoration(
-                                hintText: 'Standardname eingeben',
+                            Card(
+                              elevation: 4.0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15.0),
                               ),
-                            ),
-                            ElevatedButton(
-                              onPressed: () {
-                                _onDefaultNameChanged(_defaultNameController.text);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Standardname gespeichert.')),
-                                );
-                              },
-                              style: ElevatedButton.styleFrom(
-                                primary: Color(0xff235276), // Background color
-                              ),
-                              child: const Text('Speichern'),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          flex: 2,
-                          child: Container(
-                            height: 120.0,
-                            padding: const EdgeInsets.all(8.0),
-                            child: Image.asset('assets/like_app.png'),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Card(
-                            elevation: 4.0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15.0),
-                            ),
-                            margin: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  const Text(
-                                    'Bewertung',
-                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: ElevatedButton(
-                                      onPressed: _sendFeedbackEmail,
+                              margin: const EdgeInsets.symmetric(vertical: 8.0),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Standardname Scandatei',
+                                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                    ),
+                                    TextField(
+                                      controller: _defaultNameController,
+                                      decoration: const InputDecoration(
+                                        hintText: 'Standardname eingeben',
+                                      ),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        _onDefaultNameChanged(_defaultNameController.text);
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('Standardname gespeichert.')),
+                                        );
+                                      },
                                       style: ElevatedButton.styleFrom(
                                         primary: Color(0xff235276), // Background color
                                       ),
-                                      child: const Text('Feedback'),
+                                      child: const Text('Speichern'),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Card(
-                      elevation: 4.0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15.0),
-                      ),
-                      margin: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'E-Mail Vorlage',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                            TextField(
-                              controller: _emailTemplateController,
-                              decoration: const InputDecoration(
-                                hintText: 'Standard E-Mail Text eingeben',
-                              ),
-                            ),
-                            ElevatedButton(
-                              onPressed: () {
-                                _onEmailTemplateChanged(_emailTemplateController.text);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('E-Mail Vorlage gespeichert.')),
-                                );
-                              },
-                              style: ElevatedButton.styleFrom(
-                                primary: Color(0xff235276), // Background color
-                              ),
-                              child: const Text('Speichern'),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          flex: 2, // Hier können Sie die Breite der Karte anpassen.
-                          child: Card(
-                            elevation: 4.0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15.0),
-                            ),
-                            margin: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  const Text(
-                                    'Datenlöschung',
-                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: ElevatedButton(
-                                      onPressed: () => _confirmAndDeleteAllData(context),
-                                      style: ElevatedButton.styleFrom(
-                                        primary: Color(0xff235276), // Background color
-                                      ),
-                                      child: const Text('Alles löschen'),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Container(
-                            height: 120.0,
-                            padding: const EdgeInsets.all(8.0),
-                            child: Image.asset('assets/setting_icon.png'),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Card(
-                      elevation: 4.0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15.0),
-                      ),
-                      margin: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Sicherung',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                             ),
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: <Widget>[
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
                                 Expanded(
-                                  child: Padding(
+                                  flex: 2,
+                                  child: Container(
+                                    height: 120.0,
                                     padding: const EdgeInsets.all(8.0),
-                                    child: ElevatedButton(
-                                      onPressed: exportData,
+                                    child: Image.asset('assets/like_app.png'),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 2,
+                                  child: Card(
+                                    elevation: 4.0,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(15.0),
+                                    ),
+                                    margin: const EdgeInsets.symmetric(vertical: 8.0),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          const Text(
+                                            'Bewertung',
+                                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: ElevatedButton(
+                                              onPressed: _sendFeedbackEmail,
+                                              style: ElevatedButton.styleFrom(
+                                                primary: Color(0xff235276), // Background color
+                                              ),
+                                              child: const Text('Feedback'),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Card(
+                              elevation: 4.0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15.0),
+                              ),
+                              margin: const EdgeInsets.symmetric(vertical: 8.0),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'E-Mail Vorlage',
+                                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                    ),
+                                    TextField(
+                                      controller: _emailTemplateController,
+                                      decoration: const InputDecoration(
+                                        hintText: 'Standard E-Mail Text eingeben',
+                                      ),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        _onEmailTemplateChanged(_emailTemplateController.text);
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('E-Mail Vorlage gespeichert.')),
+                                        );
+                                      },
                                       style: ElevatedButton.styleFrom(
                                         primary: Color(0xff235276), // Background color
                                       ),
-                                      child: const Text('Daten exportieren'),
+                                      child: const Text('Speichern'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  flex: 2, // Hier können Sie die Breite der Karte anpassen.
+                                  child: Card(
+                                    elevation: 4.0,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(15.0),
+                                    ),
+                                    margin: const EdgeInsets.symmetric(vertical: 8.0),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          const Text(
+                                            'Datenlöschung',
+                                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: ElevatedButton(
+                                              onPressed: () => _confirmAndDeleteAllData(context),
+                                              style: ElevatedButton.styleFrom(
+                                                primary: Color(0xff235276), // Background color
+                                              ),
+                                              child: const Text('Alles löschen'),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
                                 Expanded(
-                                  child: Padding(
+                                  flex: 2,
+                                  child: Container(
+                                    height: 120.0,
                                     padding: const EdgeInsets.all(8.0),
-                                    child: ElevatedButton(
-                                      onPressed: importData,
-                                      style: ElevatedButton.styleFrom(
-                                        primary: Color(0xff235276), // Background color
+                                    child: Image.asset('assets/setting_icon.png'),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+                            Card(
+                              elevation: 4.0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15.0),
+                              ),
+                              margin: const EdgeInsets.symmetric(vertical: 8.0),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Bildkomprimierung',
+                                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                    ),
+                                    ListTile(
+                                      title: const Text('Für neue Scans'),
+                                      trailing: Switch(
+                                        value: newScanImageCompression,
+                                        onChanged: (bool value) {
+                                          setNewScanImageCompression(value);
+                                        },
+                                        activeColor: Color(0xff235276),
+                                        inactiveThumbColor: Colors.grey,
+                                        inactiveTrackColor: Colors.grey[300],
                                       ),
-                                      child: const Text('Daten importieren'),
+                                    ),
+                                    if (!newScanImageCompression)
+                                      const Padding(
+                                        padding: EdgeInsets.only(left: 16),
+                                        child: Text(
+                                          "Scans mit größeren Speicherverbrauch, führen zu längeren Ladezeiten",
+                                          style: TextStyle(fontSize: 14, color: Colors.red),
+                                        ),
+                                      ),
+                                    ListTile(
+                                      title: const Text('Für alte Scans'),
+                                      trailing: Switch(
+                                        value: oldScanImageCompression,
+                                        onChanged: (bool value) {
+                                          setOldScanImageCompression(value);
+                                        },
+                                        activeColor: Color(0xff235276),
+                                        inactiveThumbColor: Colors.grey,
+                                        inactiveTrackColor: Colors.grey[300],
+                                      ),
+                                    ),
+                                    if (!oldScanImageCompression)
+                                      const Padding(
+                                        padding: EdgeInsets.only(left: 16),
+                                        child: Text(
+                                          "Scans mit größeren Speicherverbrauch, führen zu längeren Ladezeiten",
+                                          style: TextStyle(fontSize: 14, color: Colors.red),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  flex: 2,
+                                  child: Container(
+                                    height: 140.0,
+                                    padding: const EdgeInsets.fromLTRB(8.0, 16.0, 16.0, 2.0),
+                                    child: Image.asset('assets/backup.png'),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 2,
+                                  child: Card(
+                                    elevation: 4.0,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(15.0),
+                                    ),
+                                    margin: const EdgeInsets.symmetric(vertical: 8.0),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          const Text(
+                                            'Sicherung',
+                                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                          ),
+                                          Column(
+                                            children: [
+                                              Padding(
+                                                padding: const EdgeInsets.all(8.0),
+                                                child: ElevatedButton(
+                                                  onPressed: exportData,
+                                                  style: ElevatedButton.styleFrom(
+                                                    primary: Color(0xff235276), // Hintergrundfarbe
+                                                  ),
+                                                  child: const Text('Daten exportieren'),
+                                                ),
+                                              ),
+                                              Padding(
+                                                padding: const EdgeInsets.all(8.0),
+                                                child: ElevatedButton(
+                                                  onPressed: importData,
+                                                  style: ElevatedButton.styleFrom(
+                                                    primary: Color(0xff235276), // Hintergrundfarbe
+                                                  ),
+                                                  child: const Text('Daten importieren'),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -451,77 +527,11 @@ class _SettingsPageState extends State<SettingsPage> {
                             ),
                           ],
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Card(
-                      elevation: 4.0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15.0),
-                      ),
-                      margin: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Bildkomprimierung',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                            ListTile(
-                              title: const Text('Für neue Scans'),
-                              trailing: Switch(
-                                value: newScanImageCompression,
-                                onChanged: (bool value) {
-                                  setNewScanImageCompression(value);
-                                },
-                                activeColor: Color(0xff235276),
-                                inactiveThumbColor: Colors.grey,
-                                inactiveTrackColor: Colors.grey[300],
-                              ),
-                            ),
-                            if (!newScanImageCompression)
-                              const Padding(
-                                padding: EdgeInsets.only(left: 16),
-                                child: Text(
-                                  "Scans mit größeren Speicherverbrauch, führen zu längeren Ladezeiten",
-                                  style: TextStyle(fontSize: 14, color: Colors.red),
-                                ),
-                              ),
-                            ListTile(
-                              title: const Text('Für alte Scans'),
-                              trailing: Switch(
-                                value: oldScanImageCompression,
-                                onChanged: (bool value) {
-                                  setOldScanImageCompression(value);
-                                },
-                                activeColor: Color(0xff235276),
-                                inactiveThumbColor: Colors.grey,
-                                inactiveTrackColor: Colors.grey[300],
-                              ),
-                            ),
-                            if (!oldScanImageCompression)
-                              const Padding(
-                                padding: EdgeInsets.only(left: 16),
-                                child: Text(
-                                  "Scans mit größeren Speicherverbrauch, führen zu längeren Ladezeiten",
-                                  style: TextStyle(fontSize: 14, color: Colors.red),
-                                ),
-                              ),
-
-                          ],
-                        ),
-                      ),
-                    ),
-          ],
-      ),
-    )
-            )
-          )
-        ]
-      )
+                      )
+                  )
+              )
+            ]
+        )
     );
   }
 }
-
