@@ -20,6 +20,7 @@ import 'fullscreen_image.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pdfWidgets;
 import 'package:path_provider/path_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -443,13 +444,13 @@ class _MyAppState extends State<MyApp> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Upload Optionen'),
+          title: Text('Upload Optionen\n'),
           content: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Fügen Sie hier weitere Buttons hinzu
-                Column(
+                Row(
                   children: [
                     InkWell(
                       onTap: () async {
@@ -465,33 +466,108 @@ class _MyAppState extends State<MyApp> {
                         }
                         Navigator.of(context).pop();
                       },
-                      child: Image.asset(
-                        'assets/mail_logo.png',
-                        width: 56,
-                        height: 56,
-                        fit: BoxFit.cover,
+                      child: Column(
+                        children: [
+                          Image.asset(
+                            'assets/new-email.png',
+                            width: 56,
+                            height: 56,
+                            fit: BoxFit.cover,
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(top: 8),
+                            child: Text(
+                              'E-Mail',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    Text('E-Mail'),
-                  ],
-                ),
-                SizedBox(height: 16),
-                InkWell(
-                  onTap: () async {
-                    await state._shareFiles(context);
-                    Navigator.of(context).pop();
-                  },
-                  child: Column(
-                    children: [
-                      Image.asset(
-                        'assets/share.png',
-                        width: 56,
-                        height: 56,
-                        fit: BoxFit.cover,
+                    SizedBox(width: 16),
+                    InkWell(
+                      onTap: () async {
+                        await state._shareFiles(context);
+                        Navigator.of(context).pop();
+                      },
+                      child: Column(
+                        children: [
+                          Image.asset(
+                            'assets/data-share.png',
+                            width: 56,
+                            height: 56,
+                            fit: BoxFit.cover,
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(top: 8),
+                            child: Text(
+                              'Teilen',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      Text('Teilen'),
-                    ],
-                  ),
+                    ),
+                    SizedBox(width: 16),
+                    InkWell(
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text('DATEV Export'),
+                              content: Text('Sind Sie an unserem DATEV Export interessiert?\n\nDann besuchen Sie unsere Hompage.'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () async {
+                                    // Aktion für den "Mehr Informationen" Button
+                                    Navigator.of(context).pop();
+                                    final url = 'https://google.com'; // Die URL der Homepage
+                                    if (await canLaunch(url)) {
+                                      await launch(url);
+                                    } else {
+                                      throw 'Konnte $url nicht öffnen.';
+                                    }
+                                  },
+                                  child: Text('Zur Homepage'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    // Aktion für den "Schließen" Button
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: Text('Schließen'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                      child: Column(
+                        children: [
+                          Image.asset(
+                            'assets/datev.png',
+                            width: 66,
+                            height: 66,
+                            fit: BoxFit.cover,
+                          ),
+                          Text(
+                            'Export',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

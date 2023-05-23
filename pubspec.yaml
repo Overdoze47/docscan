@@ -87,8 +87,10 @@ flutter:
     - assets/icon.png
     - assets/share.png
     - assets/setting_icon.png
-    - assets/data-transfer.png
+    - assets/data-share.png
     - assets/like_app.png
+    - assets/new-email.png
+    - assets/datev.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -517,42 +517,6 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                       ),
                     ),
-            Align(
-      alignment: Alignment.bottomCenter,
-      child: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-      Expanded(
-      child: Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: ElevatedButton(
-      onPressed: _sendFeedbackEmail,
-        style: ElevatedButton.styleFrom(
-          primary: Color(0xff235276), // Background color
-        ),
-      child: const Text('Feedback'),
-      ),
-      ),
-      ),
-      SizedBox(width: 16), // Dies erzeugt einen horizontalen Abstand zwischen den Buttons
-      Expanded(
-      child: Padding(
-      padding: const EdgeInsets.all(8.0),
-    child: ElevatedButton(
-    onPressed: _sendFeedbackEmail,
-      style: ElevatedButton.styleFrom(
-        primary: Color(0xff235276), // Background color
-      ),
-    child: const Text('Datenschutz'),
-                    ),
-                  ),
-                    ),
-                    ],
-              ),
-            ),
-            ),
           ],
       ),
     )
