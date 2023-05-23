@@ -257,7 +257,6 @@ class _MyAppState extends State<MyApp> {
   Future<void> _loadEmailTemplate() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? storedEmailTemplate = prefs.getString('emailTemplate');
-    print('Gespeicherte E-Mail-Vorlage: $storedEmailTemplate'); // Debug-Ausgabe hinzugefügt
     setState(() {
       _emailTemplate = storedEmailTemplate ?? "Anbei sende ich dir die gescannten Dokumente \n\n\n Von der App DocScan gescannt.";
     });
@@ -299,6 +298,7 @@ class _MyAppState extends State<MyApp> {
   String _searchQuery = '';
   TextEditingController _searchController = TextEditingController();
   bool _isSearching = false;
+
 
   void _updateSearchQuery() {
     setState(() {

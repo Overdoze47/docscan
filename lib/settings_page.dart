@@ -55,15 +55,19 @@ class _SettingsPageState extends State<SettingsPage> {
     return prefs.getBool('imageCompression') ?? false;
   }
 
-  void setNewScanImageCompression(bool value) {
-    // Here, implement how you wish to manage state or store the value.
+  void setNewScanImageCompression(bool value) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('newScanImageCompression', value);
+
     setState(() {
       newScanImageCompression = value;
     });
   }
 
-  void setOldScanImageCompression(bool value) {
-    // Here, implement how you wish to manage state or store the value.
+  void setOldScanImageCompression(bool value) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('oldScanImageCompression', value);
+
     setState(() {
       oldScanImageCompression = value;
     });
