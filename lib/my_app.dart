@@ -598,6 +598,55 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
+  void _assignPictureToFolder(_PictureData picture, BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Ordner auswählen'),
+          content: SingleChildScrollView(
+            child: Column(
+              children: _folders.map((folder) {
+                return Card(
+                  elevation: 10.0,  // Stärkerer Schatten
+                  margin: EdgeInsets.all(8.0),
+                  child: ListTile(
+                    leading: Icon(Icons.folder),
+                    title: Text(folder.name),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      _updatePictureFolder(picture, folder.name);
+                    },
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Abbrechen'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    ).then((_) {
+      // Erzwingen Sie ein erneutes Rendering, um sicherzustellen, dass die Änderungen angezeigt werden
+      setState(() {});
+    });
+  }
+
+  void _updatePictureFolder(_PictureData picture, String folderName) {
+    setState(() {
+      int pictureIndex = _pictures.indexWhere((item) => item.path == picture.path);
+      if (pictureIndex != -1) {
+        _pictures[pictureIndex].folderName = folderName;
+        savePictures();
+      }
+    });
+  }
 
   List<_PictureData> _selectedPictures = [];
   bool _isPdfConversionMode = false;
@@ -709,16 +758,20 @@ class _MyAppState extends State<MyApp> {
                         return Dismissible(
                           key: UniqueKey(),
                           onDismissed: (direction) {
-                            setState(() {
-                              _pictures.remove(pictureData);
-                            });
-                            savePictures();
+                            if (direction == DismissDirection.startToEnd) {
+                              _assignPictureToFolder(pictureData, context);
+                            } else {
+                              setState(() {
+                                _pictures.remove(pictureData);
+                              });
+                              savePictures();
+                            }
                           },
                           background: Container(
                             alignment: Alignment.centerLeft,
                             padding: EdgeInsets.only(left: 20),
-                            color: Colors.red,
-                            child: Icon(Icons.delete, color: Colors.white),
+                            color: Color(0xff235276),
+                            child: Icon(Icons.folder_copy_rounded, color: Colors.white),
                           ),
                           secondaryBackground: Container(
                             alignment: Alignment.centerRight,
