@@ -484,7 +484,7 @@ class _MyAppState extends State<MyApp> {
                   child: Column(
                     children: [
                       Image.asset(
-                        'assets/data-transfer.png',
+                        'assets/share.png',
                         width: 56,
                         height: 56,
                         fit: BoxFit.cover,
@@ -782,7 +782,7 @@ class _MyAppState extends State<MyApp> {
                                           if (_isPdfConversionMode)
                                             Checkbox(
                                               value: pictureData.selected,
-                                              onChanged: (bool? value) {
+                                              onChanged: !_isPdfConversionMode || pictureData.fileType != FileType.jpg ? null : (bool? value) {
                                                 setState(() {
                                                   pictureData.selected = value!;
                                                 });
@@ -885,6 +885,9 @@ class _MyAppState extends State<MyApp> {
         picture.fileType = FileType.pdf;  // Sie müssen diese Eigenschaft zu Ihrer _PictureData-Klasse hinzufügen
       });
     }
+
+    // Save pictures to SharedPreferences after converting images to pdf
+    savePictures();
 
     // Deaktivieren Sie den PDF-Konvertierungsmodus
     setState(() {
