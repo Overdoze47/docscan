@@ -895,6 +895,7 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+
   Future<bool> _sendEmailWithAttachments(BuildContext context, List<String> attachmentFilePaths) async {
     print('Versenden der Dateien: $attachmentFilePaths');
     final Email email = Email(
@@ -1108,7 +1109,6 @@ Folder fromMap(Map<String, dynamic> map) {
     images: List<String>.from(map['images']),
   );
 }
-
 
 enum FileType { jpg, pdf }
 

@@ -129,8 +129,8 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             TextButton(
               child: Text('Löschen'),
-              onPressed: () {
-                _deleteAllData();
+              onPressed: () async {
+                await _deleteAllData();
                 Navigator.of(context).pop();
               },
             ),
@@ -140,7 +140,7 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  void _deleteAllData() async {
+  Future<void> _deleteAllData() async {
     try {
       // Löschen Sie die Daten aus den SharedPreferences
       SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -151,8 +151,22 @@ class _SettingsPageState extends State<SettingsPage> {
       var files = directory.listSync();
       for (var file in files) {
         if (file is File) {
-          print('Deleting file ${file.path}');
-          await file.delete();
+          // Delete jpg and pdf files
+          if (file.path.endsWith('.jpg') || file.path.endsWith('.pdf')) {
+            print('Deleting file ${file.path}');
+            await file.delete();
+          }
+        } else if (file is Directory) {
+          // Delete all folders
+          print('Deleting directory ${file.path}');
+          var directoryFiles = file.listSync();
+          for (var directoryFile in directoryFiles) {
+            if (directoryFile is File) {
+              print('Deleting file in directory: ${directoryFile.path}');
+              await directoryFile.delete();
+            }
+          }
+          await file.delete(recursive: true);
         }
       }
 
@@ -169,7 +183,6 @@ class _SettingsPageState extends State<SettingsPage> {
       );
     }
   }
-
 
   void _sendFeedbackEmail() async {
     final Email email = Email(
