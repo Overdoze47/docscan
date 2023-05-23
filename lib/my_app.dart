@@ -624,6 +624,20 @@ class _MyAppState extends State<MyApp> {
           ),
           actions: <Widget>[
             TextButton(
+              child: Text('Ordner hinzufügen'),
+              onPressed: () async {
+                var folderName = await _showFolderNameDialog(context);
+                if (folderName != null) {
+                  setState(() {
+                    _folders.add(Folder(name: folderName, images: []));
+                  });
+                  _saveFolders();
+                  Navigator.of(context).pop();
+                  _showFolderDialog(context);
+                }
+              },
+            ),
+            TextButton(
               child: Text('Abbrechen'),
               onPressed: () {
                 Navigator.of(context).pop();
