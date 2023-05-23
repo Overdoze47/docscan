@@ -30,6 +30,8 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   TextEditingController _defaultNameController = TextEditingController();
   TextEditingController _emailTemplateController = TextEditingController();
+  bool newScanImageCompression = true;
+  bool oldScanImageCompression = true;
 
   @override
   void initState() {
@@ -52,6 +54,21 @@ class _SettingsPageState extends State<SettingsPage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getBool('imageCompression') ?? false;
   }
+
+  void setNewScanImageCompression(bool value) {
+    // Here, implement how you wish to manage state or store the value.
+    setState(() {
+      newScanImageCompression = value;
+    });
+  }
+
+  void setOldScanImageCompression(bool value) {
+    // Here, implement how you wish to manage state or store the value.
+    setState(() {
+      oldScanImageCompression = value;
+    });
+  }
+
 
   void _onDefaultNameChanged(String newDefaultName) {
     widget.onDefaultNameChanged(newDefaultName);
@@ -454,19 +471,16 @@ class _SettingsPageState extends State<SettingsPage> {
                             ListTile(
                               title: const Text('Für neue Scans'),
                               trailing: Switch(
-                                value: widget.imageCompression,
+                                value: newScanImageCompression,
                                 onChanged: (bool value) {
-                                  setState(() {
-                                    widget.onImageCompressionChanged(value);
-                                    setImageCompression(value);
-                                  });
+                                  setNewScanImageCompression(value);
                                 },
-                                activeColor: Color(0xff235276),  // Ändert die Farbe, wenn der Switch aktiv ist
-                                inactiveThumbColor: Colors.grey,  // Ändert die Farbe des Daumens, wenn der Switch inaktiv ist
-                                inactiveTrackColor: Colors.grey[300],  // Ändert die Farbe der Schiene, wenn der Switch inaktiv ist
+                                activeColor: Color(0xff235276),
+                                inactiveThumbColor: Colors.grey,
+                                inactiveTrackColor: Colors.grey[300],
                               ),
                             ),
-                            if (!widget.imageCompression)
+                            if (!newScanImageCompression)
                               const Padding(
                                 padding: EdgeInsets.only(left: 16),
                                 child: Text(
@@ -477,19 +491,16 @@ class _SettingsPageState extends State<SettingsPage> {
                             ListTile(
                               title: const Text('Für alte Scans'),
                               trailing: Switch(
-                                value: widget.imageCompression,
+                                value: oldScanImageCompression,
                                 onChanged: (bool value) {
-                                  setState(() {
-                                    widget.onImageCompressionChanged(value);
-                                    setImageCompression(value);
-                                  });
+                                  setOldScanImageCompression(value);
                                 },
-                                activeColor: Color(0xff235276),  // Ändert die Farbe, wenn der Switch aktiv ist
-                                inactiveThumbColor: Colors.grey,  // Ändert die Farbe des Daumens, wenn der Switch inaktiv ist
+                                activeColor: Color(0xff235276),
+                                inactiveThumbColor: Colors.grey,
                                 inactiveTrackColor: Colors.grey[300],
                               ),
                             ),
-                            if (!widget.imageCompression)
+                            if (!oldScanImageCompression)
                               const Padding(
                                 padding: EdgeInsets.only(left: 16),
                                 child: Text(
@@ -497,6 +508,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                   style: TextStyle(fontSize: 14, color: Colors.red),
                                 ),
                               ),
+
                           ],
                         ),
                       ),
