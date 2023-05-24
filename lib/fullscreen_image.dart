@@ -79,58 +79,12 @@ class _FullScreenImageState extends State<FullScreenImage> {
     }
   }
 
-  Future<void> _saveSignature() async {
-    if (_signatureControl.toPicture() != null) {
-      final data = await _signatureControl.toImage(color: Colors.black);
-      if (data == null) {
-        throw Exception('Die Daten der Signatur sind null!');
-      }
-
-      final signatureImage = await _loadImageFromBytes(data);
-
-      final originalBytes = await File(widget.path).readAsBytes();
-      final originalCodec = await ui.instantiateImageCodec(originalBytes);
-      final originalFrame = await originalCodec.getNextFrame();
-      final originalImage = originalFrame.image;
-
-      final recorder = ui.PictureRecorder();
-      final canvas = ui.Canvas(recorder, ui.Rect.fromLTWH(0, 0, originalImage.width.toDouble(), originalImage.height.toDouble()));
-
-      canvas.drawImage(originalImage, ui.Offset.zero, ui.Paint());
-      canvas.drawImage(signatureImage, ui.Offset.zero, ui.Paint());
-
-      final picture = recorder.endRecording();
-      final combinedImage = await picture.toImage(originalImage.width, originalImage.height);
-      final pngBytes = await combinedImage.toByteData(format: ui.ImageByteFormat.png);
-
-      final directory = await getTemporaryDirectory();
-      final signatureFile = File('${directory.path}/signed_image.png');
-      await signatureFile.writeAsBytes(pngBytes?.buffer.asUint8List() ?? Uint8List(0));
-
-      setState(() {
-        _isSigning = false;
-        _signedImagePath = signatureFile.path;
-      });
-    }
-  }
-
   Future<ui.Image> _loadImageFromBytes(ByteData data) async {
     final completer = Completer<ui.Image>();
     ui.decodeImageFromList(data.buffer.asUint8List(), (ui.Image img) {
       completer.complete(img);
     });
     return completer.future;
-  }
-
-  Future<void> _saveSignedImage() async {
-    if (_signedImagePath != null) {
-      final signedImage = File(_signedImagePath!);
-      final originalImage = File(widget.path);
-      await originalImage.writeAsBytes(await signedImage.readAsBytes());
-      setState(() {
-        _signedImagePath = null;
-      });
-    }
   }
 
   @override
@@ -258,26 +212,6 @@ class _FullScreenImageState extends State<FullScreenImage> {
               ),
             ),
         ],
-      ),
-      floatingActionButton: _signedImagePath != null
-          ? FloatingActionButton(
-        onPressed: _saveSignedImage,
-        tooltip: 'Speichern',
-        child: Icon(Icons.save),
-        backgroundColor: Color(0xff235276),
-      )
-          : _isSigning
-          ? FloatingActionButton(
-        onPressed: _saveSignature,
-        tooltip: 'Unterschrift speichern',
-        child: Icon(Icons.check),
-        backgroundColor: Color(0xff235276),
-      )
-          : FloatingActionButton(
-        onPressed: () => setState(() => _isSigning = true),
-        tooltip: 'Unterschreiben',
-        child: Icon(Icons.edit_note_rounded),
-        backgroundColor: Color(0xff235276),
       ),
     );
   }
