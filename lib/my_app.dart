@@ -21,6 +21,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pdfWidgets;
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:pdf_merger/pdf_merger.dart';
 
 class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -43,6 +44,7 @@ class _MyAppState extends State<MyApp> {
   bool _isFolderViewMode = true;
   Folder? _selectedFolder;
   String? currentFolderName;
+  List<_PictureData> _currentViewPictures = [];
 
   List<_PictureData> getFolderPictures(String folderName) {
     return _pictures.where((picture) => picture.folderName == folderName).toList();
@@ -454,11 +456,7 @@ class _MyAppState extends State<MyApp> {
                   children: [
                     InkWell(
                       onTap: () async {
-                        List<String> attachmentFilePaths = state._pictures
-                            .where((pictureData) => !pictureData.shared)
-                            .map((pictureData) => pictureData.path)
-                            .toList();
-                        bool emailSent = await state._sendEmailWithAttachments(context, attachmentFilePaths);
+                        bool emailSent = await state._sendEmailWithAttachments(context);
                         if (emailSent) {
                           state.setState(() {
                             state._emailSentPictures = state._pictures.length;
@@ -730,6 +728,7 @@ class _MyAppState extends State<MyApp> {
 
   void _updatePictureFolder(_PictureData picture, String folderName) {
     setState(() {
+      _currentViewPictures = _pictures.where((picture) => picture.folderName == folderName).toList();
       int pictureIndex = _pictures.indexWhere((item) => item.path == picture.path);
       if (pictureIndex != -1) {
         _pictures[pictureIndex].folderName = folderName;
@@ -1022,24 +1021,29 @@ class _MyAppState extends State<MyApp> {
       final file = File("${output.path}/${picture.name}.pdf");
       await file.writeAsBytes(await pdf.save());
 
+      // Speichern Sie den alten Pfad vor der Aktualisierung
+      final oldPath = picture.path;
+
       // Aktualisieren Sie den Pfad und den Dateityp in Ihrer pictureData-Instanz
       setState(() {
         picture.path = file.path;
-        picture.fileType = FileType.pdf;  // Sie müssen diese Eigenschaft zu Ihrer _PictureData-Klasse hinzufügen
+        picture.fileType = FileType.pdf;
+
+        // Überprüfen, ob das konvertierte Bild in der aktuellen Ansicht angezeigt wird
+        int? currentViewIndex = _currentViewPictures.indexWhere((item) => item.path == oldPath);
+        if (currentViewIndex != null && currentViewIndex != -1) {
+          _currentViewPictures[currentViewIndex] = picture;
+        }
       });
     }
-
-    // Save pictures to SharedPreferences after converting images to pdf
-    savePictures();
-
-    // Deaktivieren Sie den PDF-Konvertierungsmodus
-    setState(() {
-      _isPdfConversionMode = false;
-    });
   }
 
+  Future<bool> _sendEmailWithAttachments(BuildContext context) async {
+    List<String> attachmentFilePaths = _currentViewPictures
+        .where((pic) => !pic.shared)
+        .map((pic) => pic.path)
+        .toList();
 
-  Future<bool> _sendEmailWithAttachments(BuildContext context, List<String> attachmentFilePaths) async {
     print('Versenden der Dateien: $attachmentFilePaths');
     final Email email = Email(
       body: _emailTemplate,
@@ -1052,7 +1056,7 @@ class _MyAppState extends State<MyApp> {
     try {
       await FlutterEmailSender.send(email);
       setState(() {
-        for (_PictureData picture in _pictures) {
+        for (_PictureData picture in _currentViewPictures) {
           if (attachmentFilePaths.contains(picture.path)) {
             picture.shared = true;
           }
@@ -1067,32 +1071,48 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  void _onNameChanged(String oldPath, String newPath, String newName) {
+  void _onNameChanged(_PictureData picture, String newPath, String newName) {
     setState(() {
-      int? pictureIndex = _pictures.indexWhere((item) => item.path == oldPath);
+      int? pictureIndex = _pictures.indexWhere((item) => item.path == picture.path);
       if (pictureIndex != null && pictureIndex != -1) {
         _PictureData updatedPicture = _pictures[pictureIndex].updatePath(newPath);
         updatedPicture.name = newName;
         _pictures[pictureIndex] = updatedPicture;
+
+        // Überprüfen, ob das aktualisierte Bild in der aktuellen Ansicht angezeigt wird
+        int? currentViewIndex = _currentViewPictures.indexWhere((item) => item.path == picture.path);
+        if (currentViewIndex != null && currentViewIndex != -1) {
+          _currentViewPictures[currentViewIndex] = updatedPicture;
+        }
+
         savePictures();
       }
     });
   }
 
-  Future<void> _addPictureToDocument(_PictureData document) async {
+  Future<void> _addPictureToDocument(_PictureData picture) async {
     try {
       final List<String>? documentPaths = await CunningDocumentScanner.getPictures();
 
       if (documentPaths != null && documentPaths.isNotEmpty) {
         for (String path in documentPaths) {
-          final newPath = await _changeFileName(path, document.name);
-          setState(() { // <-- Aufruf von setState
-            _pictures.add(_PictureData(
-              name: document.name,
-              date: document.date,
+          final newPath = await _changeFileName(path, picture.name);
+          setState(() {
+            var pictureData = _PictureData(
+              name: picture.name,
+              date: picture.date,
               path: newPath,
+              shared: picture.shared,
+              selected: picture.selected,
+              fileType: picture.fileType,
               folderName: currentFolderName,
-            ));
+            );
+
+            _pictures.add(pictureData);
+
+            if (currentFolderName == picture.folderName) {
+              _currentViewPictures.add(pictureData);
+            }
 
             _folders = _foldersFromPictures(_pictures);
           });
@@ -1117,12 +1137,25 @@ class _MyAppState extends State<MyApp> {
         for (String path in documentPaths) {
           final newPath = await _changeFileName(path, imageName);
           setState(() {
+            // Bild zur Gesamtliste hinzufügen
             _pictures.add(_PictureData(
               name: imageName,
               date: formattedDate,
               path: newPath,
-              folderName: currentFolderName, // Setze folderName auf null, wenn kein Ordner ausgewählt ist
+              folderName: currentFolderName,
             ));
+
+            // Bild zur aktuellen Ansicht hinzufügen, wenn es zum geöffneten Ordner gehört
+            if (currentFolderName == _pictures.last.folderName) {
+              _currentViewPictures.add(_PictureData(
+                name: imageName,
+                date: formattedDate,
+                path: newPath,
+                folderName: currentFolderName,
+              ));
+            }
+
+            _folders = _foldersFromPictures(_pictures);
           });
           savePictures();
           _documentCounter++;
@@ -1132,6 +1165,7 @@ class _MyAppState extends State<MyApp> {
       print('Fehler beim Scannen des Dokuments: $e');
     }
   }
+
 
   void _openPicture(BuildContext context, String path, String name, FileType fileType) {
     _requestStoragePermission().then((_) {
@@ -1162,68 +1196,6 @@ class _MyAppState extends State<MyApp> {
       );
     });
   }
-}
-
-void _showUploadDialog(BuildContext context) {
-  final _MyAppState state = context.findAncestorStateOfType<_MyAppState>()!;
-
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('Upload Optionen'),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Fügen Sie hier weitere Buttons hinzu
-              Column(
-                children: [
-                  InkWell(
-                    onTap: () async {
-                      List<String> attachmentFilePaths = state._pictures
-                          .where((pictureData) => !pictureData.shared)
-                          .map((pictureData) => pictureData.path)
-                          .toList();
-                      bool emailSent = await state._sendEmailWithAttachments(context, attachmentFilePaths);
-                      if (emailSent) {
-                        state.setState(() {
-                          state._emailSentPictures = state._pictures.length;
-                        });
-                      }
-                      Navigator.of(context).pop();
-                    },
-                    child: Image.asset(
-                      'assets/mail_logo.png',
-                      width: 56,
-                      height: 56,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  Text('E-Mail'),
-                ],
-              ),
-              TextButton(
-                onPressed: () {
-                  // Implementieren Sie die gewünschte Aktion für diesen Button
-                  Navigator.of(context).pop();
-                },
-                child: Text('Option 2'),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: Text('Abbrechen'),
-          ),
-        ],
-      );
-    },
-  );
 }
 
 class Folder {
