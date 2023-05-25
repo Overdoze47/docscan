@@ -6,22 +6,20 @@ import 'package:intl/intl.dart';
 import 'package:cunning_document_scanner/cunning_document_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_email_sender/flutter_email_sender.dart';
-import 'package:flutter/material.dart' show Colors, MaterialColor;
+import 'package:flutter/material.dart' show Colors;
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:doc/ad_helper.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:collection/collection.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:image_picker/image_picker.dart';
 import 'settings_page.dart';
 import 'search_page.dart';
 import 'fullscreen_image.dart';
-import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pdfWidgets;
-import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:pdf_merger/pdf_merger.dart';
+import 'package:image/image.dart' as img;
+import 'package:pdf/pdf.dart';
 
 class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -64,7 +62,6 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-
   void _onFolderNameClicked(Folder folder) {
     setState(() {
       _selectedFolder = folder;
@@ -84,14 +81,14 @@ class _MyAppState extends State<MyApp> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Ordner'),
+        title: const Text('Ordner'),
         content: SingleChildScrollView(
           child: ListBody(
             children: _folders.map((folder) {
               return Card(
                 elevation: 5,
                 child: ListTile(
-                  leading: Icon(Icons.folder),
+                  leading: const Icon(Icons.folder),
                   title: Text(folder.name),
                   onTap: () {
                     setState(() {
@@ -105,22 +102,22 @@ class _MyAppState extends State<MyApp> {
                     Navigator.of(context).pop();
                   },
                   trailing: IconButton(
-                    icon: Icon(Icons.delete, color: Colors.red),
+                    icon: const Icon(Icons.delete, color: Colors.red),
                     onPressed: () {
                       showDialog(
                         context: context,
                         builder: (context) => AlertDialog(
-                          title: Text('Ordner löschen'),
-                          content: Text('Sind Sie sicher, dass Sie diesen Ordner löschen möchten?'),
+                          title: const Text('Ordner löschen'),
+                          content: const Text('Sind Sie sicher, dass Sie diesen Ordner löschen möchten?'),
                           actions: [
                             TextButton(
-                              child: Text('Abbrechen'),
+                              child: const Text('Abbrechen'),
                               onPressed: () {
                                 Navigator.of(context).pop();
                               },
                             ),
                             TextButton(
-                              child: Text('Löschen'),
+                              child: const Text('Löschen'),
                               onPressed: () {
                                 setState(() {
                                   _folders.remove(folder);
@@ -143,7 +140,7 @@ class _MyAppState extends State<MyApp> {
         ),
         actions: <Widget>[
           TextButton(
-            child: Text('Ordner hinzufügen'),
+            child: const Text('Ordner hinzufügen'),
             onPressed: () async {
               var folderName = await _showFolderNameDialog(context);
               if (folderName != null) {
@@ -157,7 +154,7 @@ class _MyAppState extends State<MyApp> {
             },
           ),
           TextButton(
-            child: Text('Schließen'),
+            child: const Text('Schließen'),
             onPressed: () {
               Navigator.of(context).pop();
             },
@@ -173,24 +170,24 @@ class _MyAppState extends State<MyApp> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Neuen Ordner erstellen'),
+          title: const Text('Neuen Ordner erstellen'),
           content: TextField(
             onChanged: (value) {
               folderName = value;
             },
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               hintText: "Ordnername",
             ),
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Abbrechen'),
+              child: const Text('Abbrechen'),
               onPressed: () {
                 Navigator.pop(context);
               },
             ),
             TextButton(
-              child: Text('Speichern'),
+              child: const Text('Speichern'),
               onPressed: () {
                 Navigator.pop(context, folderName);
               },
@@ -242,11 +239,9 @@ class _MyAppState extends State<MyApp> {
     } else {
       displayedPictures = _pictures.where((picture) => picture.folderName == currentFolderName).toList();
     }
-
     if (_searchQuery?.isEmpty != false) {
       return displayedPictures;
     }
-
     return displayedPictures
         .where((pictureData) => pictureData.name.toLowerCase().contains(_searchQuery!.toLowerCase()))
         .toList();
@@ -265,7 +260,6 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-
   @override
   void initState() {
     super.initState();
@@ -283,7 +277,7 @@ class _MyAppState extends State<MyApp> {
     _bannerAd = BannerAd(
       adUnitId: AdHelper.bannerAdUnitId,
       size: AdSize.banner,
-      request: AdRequest(),
+      request: const AdRequest(),
       listener: BannerAdListener(
         onAdLoaded: (_) {
           setState(() {
@@ -302,7 +296,6 @@ class _MyAppState extends State<MyApp> {
   TextEditingController _searchController = TextEditingController();
   bool _isSearching = false;
 
-
   void _updateSearchQuery() {
     setState(() {
       _searchQuery = _searchController.text;
@@ -314,7 +307,7 @@ class _MyAppState extends State<MyApp> {
       controller: _searchController,
       autofocus: true,
       onChanged: (value) => _updateSearchQuery(),
-      decoration: InputDecoration(
+      decoration: const InputDecoration(
         hintText: 'Suche...',
         border: InputBorder.none,
       ),
@@ -372,7 +365,6 @@ class _MyAppState extends State<MyApp> {
     return prefs.getString('defaultDocumentName') ?? 'DocScan';
   }
 
-
   Future<String> getDCIMCameraPath() async {
     List<Directory>? extDirs = await getExternalStorageDirectories(type: StorageDirectory.dcim);
     String? dcimPath;
@@ -385,8 +377,6 @@ class _MyAppState extends State<MyApp> {
 
     return dcimPath;
   }
-
-
 
   Future<String> _changeFileName(String oldPath, String newName) async {
     try {
@@ -427,7 +417,6 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-
   Future<void> initPlatformState() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -446,7 +435,7 @@ class _MyAppState extends State<MyApp> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Upload Optionen\n'),
+          title: const Text('Upload Optionen\n'),
           content: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -472,7 +461,7 @@ class _MyAppState extends State<MyApp> {
                             height: 56,
                             fit: BoxFit.cover,
                           ),
-                          Padding(
+                          const Padding(
                             padding: EdgeInsets.only(top: 8),
                             child: Text(
                               'E-Mail',
@@ -485,7 +474,7 @@ class _MyAppState extends State<MyApp> {
                         ],
                       ),
                     ),
-                    SizedBox(width: 16),
+                    const SizedBox(width: 16),
                     InkWell(
                       onTap: () async {
                         await state._shareFiles(context);
@@ -499,7 +488,7 @@ class _MyAppState extends State<MyApp> {
                             height: 56,
                             fit: BoxFit.cover,
                           ),
-                          Padding(
+                          const Padding(
                             padding: EdgeInsets.only(top: 8),
                             child: Text(
                               'Teilen',
@@ -512,15 +501,15 @@ class _MyAppState extends State<MyApp> {
                         ],
                       ),
                     ),
-                    SizedBox(width: 16),
+                    const SizedBox(width: 16),
                     InkWell(
                       onTap: () {
                         showDialog(
                           context: context,
                           builder: (BuildContext context) {
                             return AlertDialog(
-                              title: Text('DATEV Export'),
-                              content: Text('Sind Sie an unserem DATEV Export interessiert?\n\nDann besuchen Sie unsere Hompage.'),
+                              title: const Text('DATEV Export'),
+                              content: const Text('Sind Sie an unserem DATEV Export interessiert?\n\nDann besuchen Sie unsere Hompage.'),
                               actions: [
                                 TextButton(
                                   onPressed: () async {
@@ -533,14 +522,14 @@ class _MyAppState extends State<MyApp> {
                                       throw 'Konnte $url nicht öffnen.';
                                     }
                                   },
-                                  child: Text('Zur Homepage'),
+                                  child: const Text('Zur Homepage'),
                                 ),
                                 TextButton(
                                   onPressed: () {
                                     // Aktion für den "Schließen" Button
                                     Navigator.of(context).pop();
                                   },
-                                  child: Text('Schließen'),
+                                  child: const Text('Schließen'),
                                 ),
                               ],
                             );
@@ -555,7 +544,7 @@ class _MyAppState extends State<MyApp> {
                             height: 66,
                             fit: BoxFit.cover,
                           ),
-                          Text(
+                          const Text(
                             'Export',
                             style: TextStyle(
                               fontSize: 12,
@@ -575,7 +564,7 @@ class _MyAppState extends State<MyApp> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('Abbrechen'),
+              child: const Text('Abbrechen'),
             ),
           ],
         );
@@ -600,7 +589,7 @@ class _MyAppState extends State<MyApp> {
       });
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Dokumente wurden schon geteilt.')),
+        const SnackBar(content: Text('Dokumente wurden schon geteilt.')),
       );
     }
   }
@@ -618,7 +607,6 @@ class _MyAppState extends State<MyApp> {
         folderMap[folderName]!.add(picture);
       }
     }
-
     // Erzeugt eine Liste von Folder Objekten aus der Map
     List<Folder> folders = [];
     for (String folderName in folderMap.keys) {
@@ -626,10 +614,8 @@ class _MyAppState extends State<MyApp> {
       folder.addImages(folderMap[folderName]!);
       folders.add(folder);
     }
-
     return folders;
   }
-
 
   Future<void> savePictures() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -667,7 +653,7 @@ class _MyAppState extends State<MyApp> {
       await Share.shareFiles([filePath], text: _emailTemplate);
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Beim Teilen der Datei ist ein Fehler aufgetreten.')),
+        const SnackBar(content: Text('Beim Teilen der Datei ist ein Fehler aufgetreten.')),
       );
     }
   }
@@ -677,15 +663,15 @@ class _MyAppState extends State<MyApp> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Ordner auswählen'),
+          title: const Text('Ordner auswählen'),
           content: SingleChildScrollView(
             child: Column(
               children: _folders.map((folder) {
                 return Card(
                   elevation: 10.0,  // Stärkerer Schatten
-                  margin: EdgeInsets.all(8.0),
+                  margin: const EdgeInsets.all(8.0),
                   child: ListTile(
-                    leading: Icon(Icons.folder),
+                    leading: const Icon(Icons.folder),
                     title: Text(folder.name),
                     onTap: () {
                       Navigator.of(context).pop();
@@ -698,7 +684,7 @@ class _MyAppState extends State<MyApp> {
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Ordner hinzufügen'),
+              child: const Text('Ordner hinzufügen'),
               onPressed: () async {
                 var folderName = await _showFolderNameDialog(context);
                 if (folderName != null) {
@@ -712,7 +698,7 @@ class _MyAppState extends State<MyApp> {
               },
             ),
             TextButton(
-              child: Text('Abbrechen'),
+              child: const Text('Abbrechen'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -754,7 +740,7 @@ class _MyAppState extends State<MyApp> {
           double screenWidth = MediaQuery.of(context).size.width;
           return Scaffold(
             appBar: AppBar(
-              backgroundColor: Color(0xff005874),
+              backgroundColor: const Color(0xff005874),
               title: _isSearching
                   ? Expanded(
                 child: TextField(
@@ -764,13 +750,13 @@ class _MyAppState extends State<MyApp> {
                       _searchQuery = value;
                     });
                   },
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: 'Suche...',
                     border: InputBorder.none,
                   ),
                 ),
               )
-                  : (currentFolderName == null ? Text('DocScan') : Text('Ordner: $currentFolderName')),
+                  : (currentFolderName == null ? const Text('DocScan') : Text('Ordner: $currentFolderName')),
               leading: currentFolderName == null
                   ? IconButton(
                 icon: const Icon(Icons.settings_rounded),
@@ -791,7 +777,7 @@ class _MyAppState extends State<MyApp> {
                 },
               )
                   : IconButton(
-                icon: Icon(Icons.arrow_back),
+                icon: const Icon(Icons.arrow_back),
                 onPressed: () {
                   setState(() {
                     currentFolderName = null;
@@ -858,24 +844,24 @@ class _MyAppState extends State<MyApp> {
                           },
                           background: Container(
                             alignment: Alignment.centerLeft,
-                            padding: EdgeInsets.only(left: 20),
+                            padding: const EdgeInsets.only(left: 20),
                             color: Colors.white,
-                            child: Icon(Icons.folder_copy_rounded, color: Color(0xff235276)),
+                            child: const Icon(Icons.folder_copy_rounded, color: Color(0xff235276)),
                           ),
                           secondaryBackground: Container(
                             alignment: Alignment.centerRight,
-                            padding: EdgeInsets.only(right: 20),
+                            padding: const EdgeInsets.only(right: 20),
                             color: Colors.white,
-                            child: Icon(Icons.delete_rounded, color: Colors.red),
+                            child: const Icon(Icons.delete_rounded, color: Colors.red),
                           ),
                           child: Card(
                             elevation: 8.0,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            margin: EdgeInsets.all(8.0),
+                            margin: const EdgeInsets.all(8.0),
                             child: Container(
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(10),
-                                gradient: LinearGradient(
+                                gradient: const LinearGradient(
                                   colors: [
                                     Colors.white,
                                     Colors.white
@@ -892,7 +878,7 @@ class _MyAppState extends State<MyApp> {
                                       print(pictureData.path);
                                     },
                                     child: Container(
-                                      margin: EdgeInsets.all(8.0),
+                                      margin: const EdgeInsets.all(8.0),
                                       child: Row(
                                         children: [
                                           ClipRRect(
@@ -912,7 +898,7 @@ class _MyAppState extends State<MyApp> {
                                           ),
                                           Expanded(
                                             child: Container(
-                                              margin: EdgeInsets.only(left: 16.0),
+                                              margin: const EdgeInsets.only(left: 16.0),
                                               child: Column(
                                                 crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: [
@@ -936,7 +922,7 @@ class _MyAppState extends State<MyApp> {
                                             onPressed: () => _shareFile(context, pictureData.path),
                                           ),
                                           if (pictureData.shared)
-                                            Padding(
+                                            const Padding(
                                               padding: EdgeInsets.only(right: 8.0),
                                               child: Icon(Icons.cloud_done, size: 24, color: Colors.green),
                                             ),
@@ -966,15 +952,15 @@ class _MyAppState extends State<MyApp> {
                       FloatingActionButton(
                         onPressed: () => _showFolderDialog(context),
                         tooltip: 'Ordner anzeigen',
-                        child: Icon(Icons.folder),
-                        backgroundColor: Color(0xff235276),
+                        child: const Icon(Icons.folder),
+                        backgroundColor: const Color(0xff235276),
                       ),
-                      SizedBox(height: 16),  // Abstand zwischen den Buttons
+                      const SizedBox(height: 16),  // Abstand zwischen den Buttons
                       FloatingActionButton(
                         onPressed: _onCameraButtonPressed,
                         tooltip: 'Bilder hinzufügen',
-                        child: Icon(Icons.camera_alt),
-                        backgroundColor: Color(0xff235276),
+                        child: const Icon(Icons.camera_alt),
+                        backgroundColor: const Color(0xff235276),
                       ),
                     ],
                   );
@@ -1005,45 +991,45 @@ class _MyAppState extends State<MyApp> {
       final file = File(picture.path);
       if (await file.exists()) {
         final imageBytes = file.readAsBytesSync();
-        final decoder = await decodeImageFromList(imageBytes);
-        if (decoder != null) {
-          final image = pdfWidgets.MemoryImage(imageBytes);
 
-          pdf.addPage(
-            pdfWidgets.Page(
-              build: (pdfWidgets.Context context) => pdfWidgets.Center(
-                child: pdfWidgets.Image(image),
-              ),
-            ),
-          );
+        // Here we use the image package to decode the image.
+        final image = img.decodeImage(imageBytes)!;
 
-          final output = await getTemporaryDirectory();
-          final pdfFile = File("${output.path}/${picture.name}.pdf");
-          await pdfFile.writeAsBytes(await pdf.save());
+        // Then convert it to PDF format.
+        final pdfImage = pdfWidgets.MemoryImage(
+          img.encodeJpg(image),
+        );
 
-          // Speichern Sie den alten Pfad vor der Aktualisierung
-          final oldPath = picture.path;
+        pdf.addPage(pdfWidgets.Page(
+          build: (pdfWidgets.Context context) => pdfWidgets.Center(
+            child: pdfWidgets.Image(pdfImage),
+          ),
+        ));
 
-          // Aktualisieren Sie den Pfad und den Dateityp in Ihrer pictureData-Instanz
-          setState(() {
-            picture.path = pdfFile.path;
-            picture.fileType = FileType.pdf;
+        // Save the document
+        final output = await getTemporaryDirectory();
+        final pdfFile = File("${output.path}/${picture.name}.pdf");
+        await pdfFile.writeAsBytes(await pdf.save());
 
-            // Überprüfen, ob das konvertierte Bild in der aktuellen Ansicht angezeigt wird
-            int? currentViewIndex = _currentViewPictures.indexWhere((item) => item.path == oldPath);
-            if (currentViewIndex != null && currentViewIndex != -1) {
-              _currentViewPictures[currentViewIndex] = picture;
-            }
-          });
-        } else {
-          print("Unsupported image format");
-        }
+        // Save the old path before updating
+        final oldPath = picture.path;
+
+        // Update the path and filetype in your pictureData instance
+        setState(() {
+          picture.path = pdfFile.path;
+          picture.fileType = FileType.pdf;
+
+          // Check if the converted image is currently being viewed
+          int? currentViewIndex = _currentViewPictures.indexWhere((item) => item.path == oldPath);
+          if (currentViewIndex != null && currentViewIndex != -1) {
+            _currentViewPictures[currentViewIndex] = picture;
+          }
+        });
       } else {
         print("File does not exist");
       }
     }
   }
-
 
   Future<bool> _sendEmailWithAttachments(BuildContext context) async {
     List<String> attachmentFilePaths = _currentViewPictures
@@ -1072,7 +1058,7 @@ class _MyAppState extends State<MyApp> {
       return true;
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Konnte keinen Email-Client öffnen.')),
+        const SnackBar(content: Text('Konnte keinen Email-Client öffnen.')),
       );
       return false;
     }
@@ -1172,7 +1158,6 @@ class _MyAppState extends State<MyApp> {
       print('Fehler beim Scannen des Dokuments: $e');
     }
   }
-
 
   void _openPicture(BuildContext context, String path, String name, FileType fileType) {
     _requestStoragePermission().then((_) {

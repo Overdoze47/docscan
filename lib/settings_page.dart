@@ -137,17 +137,17 @@ class _SettingsPageState extends State<SettingsPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Datenlöschung'),
-          content: Text('Sind Sie sicher, dass Sie alle Daten löschen möchten?\n\nStarten Sie die App danach neu.'),
+          title: const Text('Datenlöschung'),
+          content: const Text('Sind Sie sicher, dass Sie alle Daten löschen möchten?\n\nStarten Sie die App danach neu.'),
           actions: <Widget>[
             TextButton(
-              child: Text('Abbrechen'),
+              child: const Text('Abbrechen'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: Text('Löschen'),
+              child: const Text('Löschen'),
               onPressed: () async {
                 await _deleteAllData();
                 Navigator.of(context).pop();
@@ -176,16 +176,13 @@ class _SettingsPageState extends State<SettingsPage> {
           if (file is File) {
             // Delete jpg and pdf files
             if (file.path.endsWith('.jpg') || file.path.endsWith('.pdf')) {
-              print('Deleting file ${file.path}');
               await file.delete();
             }
           } else if (file is Directory) {
             // Delete all folders
-            print('Deleting directory ${file.path}');
             var directoryFiles = file.listSync();
             for (var directoryFile in directoryFiles) {
               if (directoryFile is File) {
-                print('Deleting file in directory: ${directoryFile.path}');
                 await directoryFile.delete();
               }
             }
@@ -194,7 +191,7 @@ class _SettingsPageState extends State<SettingsPage> {
         }
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Alle Daten wurden erfolgreich gelöscht'),
         ),
       );
@@ -230,7 +227,7 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          backgroundColor: Color(0xff005874),
+          backgroundColor: const Color(0xff005874),
           title: const Text('Einstellungen'),
         ),
         body: Column(
@@ -271,7 +268,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                         );
                                       },
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: Color(0xff235276), // Background color
+                                        backgroundColor: const Color(0xff235276), // Background color
                                       ),
                                       child: const Text('Speichern'),
                                     ),
@@ -312,7 +309,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                             child: ElevatedButton(
                                               onPressed: _sendFeedbackEmail,
                                               style: ElevatedButton.styleFrom(
-                                                backgroundColor: Color(0xff235276), // Background color
+                                                backgroundColor: const Color(0xff235276), // Background color
                                               ),
                                               child: const Text('Feedback'),
                                             ),
@@ -353,7 +350,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                         );
                                       },
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: Color(0xff235276), // Background color
+                                        backgroundColor: const Color(0xff235276), // Background color
                                       ),
                                       child: const Text('Speichern'),
                                     ),
@@ -387,7 +384,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                             child: ElevatedButton(
                                               onPressed: () => _confirmAndDeleteAllData(context),
                                               style: ElevatedButton.styleFrom(
-                                                backgroundColor: Color(0xff235276), // Background color
+                                                backgroundColor: const Color(0xff235276), // Background color
                                               ),
                                               child: const Text('Alles löschen'),
                                             ),
@@ -430,7 +427,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                         onChanged: (bool value) {
                                           setNewScanImageCompression(value);
                                         },
-                                        activeColor: Color(0xff235276),
+                                        activeColor: const Color(0xff235276),
                                         inactiveThumbColor: Colors.grey,
                                         inactiveTrackColor: Colors.grey[300],
                                       ),
@@ -450,7 +447,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                         onChanged: (bool value) {
                                           setOldScanImageCompression(value);
                                         },
-                                        activeColor: Color(0xff235276),
+                                        activeColor: const Color(0xff235276),
                                         inactiveThumbColor: Colors.grey,
                                         inactiveTrackColor: Colors.grey[300],
                                       ),
@@ -503,7 +500,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                                 child: ElevatedButton(
                                                   onPressed: exportData,
                                                   style: ElevatedButton.styleFrom(
-                                                    backgroundColor: Color(0xff235276), // Hintergrundfarbe
+                                                    backgroundColor: const Color(0xff235276), // Hintergrundfarbe
                                                   ),
                                                   child: const Text('Daten exportieren'),
                                                 ),
@@ -513,7 +510,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                                 child: ElevatedButton(
                                                   onPressed: importData,
                                                   style: ElevatedButton.styleFrom(
-                                                    backgroundColor: Color(0xff235276), // Hintergrundfarbe
+                                                    backgroundColor: const Color(0xff235276), // Hintergrundfarbe
                                                   ),
                                                   child: const Text('Daten importieren'),
                                                 ),
