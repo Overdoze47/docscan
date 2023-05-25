@@ -931,11 +931,6 @@ class _MyAppState extends State<MyApp> {
                                                 });
                                               },
                                             ),
-                                          if (pictureData.fileType == FileType.pdf)
-                                            IconButton(
-                                              icon: const Icon(Icons.add),
-                                              onPressed: () => _addPictureToExistingDocument(context, pictureData),
-                                            ),
                                           IconButton(
                                             icon: const Icon(Icons.share),
                                             onPressed: () => _shareFile(context, pictureData.path),
@@ -1006,38 +1001,49 @@ class _MyAppState extends State<MyApp> {
       // Erstellen Sie ein neues PDF-Dokument für jedes Bild
       final pdf = pdfWidgets.Document();
 
-      final image = pdfWidgets.MemoryImage(
-        File(picture.path).readAsBytesSync(),
-      );
+      // Überprüfen Sie, ob die Datei existiert und das Format unterstützt wird
+      final file = File(picture.path);
+      if (await file.exists()) {
+        final imageBytes = file.readAsBytesSync();
+        final decoder = await decodeImageFromList(imageBytes);
+        if (decoder != null) {
+          final image = pdfWidgets.MemoryImage(imageBytes);
 
-      pdf.addPage(
-        pdfWidgets.Page(
-          build: (pdfWidgets.Context context) => pdfWidgets.Center(
-            child: pdfWidgets.Image(image),
-          ),
-        ),
-      );
+          pdf.addPage(
+            pdfWidgets.Page(
+              build: (pdfWidgets.Context context) => pdfWidgets.Center(
+                child: pdfWidgets.Image(image),
+              ),
+            ),
+          );
 
-      final output = await getTemporaryDirectory();
-      final file = File("${output.path}/${picture.name}.pdf");
-      await file.writeAsBytes(await pdf.save());
+          final output = await getTemporaryDirectory();
+          final pdfFile = File("${output.path}/${picture.name}.pdf");
+          await pdfFile.writeAsBytes(await pdf.save());
 
-      // Speichern Sie den alten Pfad vor der Aktualisierung
-      final oldPath = picture.path;
+          // Speichern Sie den alten Pfad vor der Aktualisierung
+          final oldPath = picture.path;
 
-      // Aktualisieren Sie den Pfad und den Dateityp in Ihrer pictureData-Instanz
-      setState(() {
-        picture.path = file.path;
-        picture.fileType = FileType.pdf;
+          // Aktualisieren Sie den Pfad und den Dateityp in Ihrer pictureData-Instanz
+          setState(() {
+            picture.path = pdfFile.path;
+            picture.fileType = FileType.pdf;
 
-        // Überprüfen, ob das konvertierte Bild in der aktuellen Ansicht angezeigt wird
-        int? currentViewIndex = _currentViewPictures.indexWhere((item) => item.path == oldPath);
-        if (currentViewIndex != null && currentViewIndex != -1) {
-          _currentViewPictures[currentViewIndex] = picture;
+            // Überprüfen, ob das konvertierte Bild in der aktuellen Ansicht angezeigt wird
+            int? currentViewIndex = _currentViewPictures.indexWhere((item) => item.path == oldPath);
+            if (currentViewIndex != null && currentViewIndex != -1) {
+              _currentViewPictures[currentViewIndex] = picture;
+            }
+          });
+        } else {
+          print("Unsupported image format");
         }
-      });
+      } else {
+        print("File does not exist");
+      }
     }
   }
+
 
   Future<bool> _sendEmailWithAttachments(BuildContext context) async {
     List<String> attachmentFilePaths = _currentViewPictures
