@@ -140,7 +140,7 @@ class _SettingsPageState extends State<SettingsPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Datenlöschung'),
-          content: Text('Sind Sie sicher, dass Sie alle Daten löschen möchten?'),
+          content: Text('Sind Sie sicher, dass Sie alle Daten löschen möchten?\n\nStarten Sie die App danach neu.'),
           actions: <Widget>[
             TextButton(
               child: Text('Abbrechen'),
@@ -168,26 +168,31 @@ class _SettingsPageState extends State<SettingsPage> {
       await prefs.clear();
 
       // Löschen Sie alle Dateien in einem bestimmten Pfad
-      Directory directory = await getApplicationDocumentsDirectory();  // oder einen anderen Pfad
-      var files = directory.listSync();
-      for (var file in files) {
-        if (file is File) {
-          // Delete jpg and pdf files
-          if (file.path.endsWith('.jpg') || file.path.endsWith('.pdf')) {
-            print('Deleting file ${file.path}');
-            await file.delete();
-          }
-        } else if (file is Directory) {
-          // Delete all folders
-          print('Deleting directory ${file.path}');
-          var directoryFiles = file.listSync();
-          for (var directoryFile in directoryFiles) {
-            if (directoryFile is File) {
-              print('Deleting file in directory: ${directoryFile.path}');
-              await directoryFile.delete();
+      String path = '/storage/emulated/0/Android/data/com.example.docscan/files/dcim/Camera/';
+      Directory directory = Directory(path);
+
+      // Überprüfen Sie, ob das Verzeichnis existiert
+      if(await directory.exists()){
+        var files = directory.listSync();
+        for (var file in files) {
+          if (file is File) {
+            // Delete jpg and pdf files
+            if (file.path.endsWith('.jpg') || file.path.endsWith('.pdf')) {
+              print('Deleting file ${file.path}');
+              await file.delete();
             }
+          } else if (file is Directory) {
+            // Delete all folders
+            print('Deleting directory ${file.path}');
+            var directoryFiles = file.listSync();
+            for (var directoryFile in directoryFiles) {
+              if (directoryFile is File) {
+                print('Deleting file in directory: ${directoryFile.path}');
+                await directoryFile.delete();
+              }
+            }
+            await file.delete(recursive: true);
           }
-          await file.delete(recursive: true);
         }
       }
 
@@ -204,6 +209,7 @@ class _SettingsPageState extends State<SettingsPage> {
       );
     }
   }
+
 
   void _sendFeedbackEmail() async {
     final Email email = Email(

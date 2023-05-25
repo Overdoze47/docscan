@@ -889,6 +889,7 @@ class _MyAppState extends State<MyApp> {
                                   return InkWell(
                                     onTap: () {
                                       _openPicture(context, pictureData.path, pictureData.name, pictureData.fileType);
+                                      print(pictureData.path);
                                     },
                                     child: Container(
                                       margin: EdgeInsets.all(8.0),
