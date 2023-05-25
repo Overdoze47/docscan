@@ -73,7 +73,6 @@ class _SettingsPageState extends State<SettingsPage> {
     });
   }
 
-
   void _onDefaultNameChanged(String newDefaultName) {
     widget.onDefaultNameChanged(newDefaultName);
   }
@@ -195,7 +194,6 @@ class _SettingsPageState extends State<SettingsPage> {
           }
         }
       }
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Alle Daten wurden erfolgreich gelöscht'),
@@ -209,7 +207,6 @@ class _SettingsPageState extends State<SettingsPage> {
       );
     }
   }
-
 
   void _sendFeedbackEmail() async {
     final Email email = Email(
