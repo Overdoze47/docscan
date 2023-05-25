@@ -859,14 +859,14 @@ class _MyAppState extends State<MyApp> {
                           background: Container(
                             alignment: Alignment.centerLeft,
                             padding: EdgeInsets.only(left: 20),
-                            color: Color(0xff235276),
-                            child: Icon(Icons.folder_copy_rounded, color: Colors.white),
+                            color: Colors.white,
+                            child: Icon(Icons.folder_copy_rounded, color: Color(0xff235276)),
                           ),
                           secondaryBackground: Container(
                             alignment: Alignment.centerRight,
                             padding: EdgeInsets.only(right: 20),
-                            color: Colors.red,
-                            child: Icon(Icons.delete, color: Colors.white),
+                            color: Colors.white,
+                            child: Icon(Icons.delete_rounded, color: Colors.red),
                           ),
                           child: Card(
                             elevation: 8.0,
