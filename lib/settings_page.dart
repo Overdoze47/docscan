@@ -4,7 +4,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class SettingsPage extends StatefulWidget {
   final String defaultDocumentName;
@@ -272,7 +271,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                         );
                                       },
                                       style: ElevatedButton.styleFrom(
-                                        primary: Color(0xff235276), // Background color
+                                        backgroundColor: Color(0xff235276), // Background color
                                       ),
                                       child: const Text('Speichern'),
                                     ),
@@ -313,7 +312,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                             child: ElevatedButton(
                                               onPressed: _sendFeedbackEmail,
                                               style: ElevatedButton.styleFrom(
-                                                primary: Color(0xff235276), // Background color
+                                                backgroundColor: Color(0xff235276), // Background color
                                               ),
                                               child: const Text('Feedback'),
                                             ),
@@ -354,7 +353,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                         );
                                       },
                                       style: ElevatedButton.styleFrom(
-                                        primary: Color(0xff235276), // Background color
+                                        backgroundColor: Color(0xff235276), // Background color
                                       ),
                                       child: const Text('Speichern'),
                                     ),
@@ -388,7 +387,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                             child: ElevatedButton(
                                               onPressed: () => _confirmAndDeleteAllData(context),
                                               style: ElevatedButton.styleFrom(
-                                                primary: Color(0xff235276), // Background color
+                                                backgroundColor: Color(0xff235276), // Background color
                                               ),
                                               child: const Text('Alles löschen'),
                                             ),
@@ -504,7 +503,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                                 child: ElevatedButton(
                                                   onPressed: exportData,
                                                   style: ElevatedButton.styleFrom(
-                                                    primary: Color(0xff235276), // Hintergrundfarbe
+                                                    backgroundColor: Color(0xff235276), // Hintergrundfarbe
                                                   ),
                                                   child: const Text('Daten exportieren'),
                                                 ),
@@ -514,7 +513,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                                 child: ElevatedButton(
                                                   onPressed: importData,
                                                   style: ElevatedButton.styleFrom(
-                                                    primary: Color(0xff235276), // Hintergrundfarbe
+                                                    backgroundColor: Color(0xff235276), // Hintergrundfarbe
                                                   ),
                                                   child: const Text('Daten importieren'),
                                                 ),
