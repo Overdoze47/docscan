@@ -981,7 +981,7 @@ class _MyAppState extends State<MyApp> {
 
   void _convertSelectedImagesToPdf() async {
     // Erstellen Sie eine Liste von ausgewählten Bildern
-    _selectedPictures = _pictures.where((picture) => picture.selected).toList();
+    _selectedPictures = _pictures.where((picture) => picture.selected && picture.fileType == FileType.jpg).toList();
 
     for (var picture in _selectedPictures) {
       // Erstellen Sie ein neues PDF-Dokument für jedes Bild
@@ -1024,6 +1024,8 @@ class _MyAppState extends State<MyApp> {
           if (currentViewIndex != null && currentViewIndex != -1) {
             _currentViewPictures[currentViewIndex] = picture;
           }
+
+          savePictures(); // Speichern Sie die Änderungen in SharedPreferences
         });
       } else {
         print("File does not exist");
