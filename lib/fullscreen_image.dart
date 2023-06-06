@@ -33,6 +33,7 @@ class _FullScreenImageState extends State<FullScreenImage> {
   late BannerAd _bannerAd;
   bool _isBannerAdReady = false;
   String? _signedImagePath;
+  String? _updatedPath;
 
   img.Image? _image;
   img.Image? _filteredImage;
@@ -97,6 +98,7 @@ class _FullScreenImageState extends State<FullScreenImage> {
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
+    String correctedPath = widget.path.replaceFirst('/data/user/0/', '/data/data/');
 
     return Scaffold(
       appBar: AppBar(
@@ -177,25 +179,28 @@ class _FullScreenImageState extends State<FullScreenImage> {
                     ),
                   )
                       : CircularProgressIndicator()
-                      : PDFView(
-                    filePath: widget.path,
-                    enableSwipe: true,
-                    swipeHorizontal: true,
-                    autoSpacing: false,
-                    pageFling: false,
-                    onError: (error) {
-                      print(error.toString());
-                    },
-                    onPageError: (page, error) {
-                      print('$page: ${error.toString()}');
-                    },
-                    onViewCreated: (PDFViewController pdfViewController) {
-                      // Optionaler Code, der ausgeführt wird, sobald die PDF-Ansicht erstellt wurde
-                    },
-                    onRender: (_pages) {
-                      // Optionaler Code, der ausgeführt wird, sobald die PDF gerendert wurde
-                    },
-                  ),
+                      : (() {
+                    print('Loading PDF from path: $correctedPath');
+                    return PDFView(
+                      filePath: correctedPath,
+                      enableSwipe: true,
+                      swipeHorizontal: true,
+                      autoSpacing: false,
+                      pageFling: false,
+                      onError: (error) {
+                        print('Error loading PDF: $error');
+                      },
+                      onPageError: (page, error) {
+                        print('Error on page $page: $error');
+                      },
+                      onViewCreated: (PDFViewController pdfViewController) {
+                        // Optionaler Code, der ausgeführt wird, sobald die PDF-Ansicht erstellt wurde
+                      },
+                      onRender: (_pages) {
+                        // Optionaler Code, der ausgeführt wird, sobald die PDF gerendert wurde
+                      },
+                    );
+                  }()),
                 ),
               ),
             ],
@@ -216,4 +221,6 @@ class _FullScreenImageState extends State<FullScreenImage> {
     );
   }
 }
+
+
 

@@ -549,8 +549,8 @@ class _MyAppState extends State<MyApp> {
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              ),
                             ),
+                          ),
                         ],
                       ),
                     ),
@@ -756,7 +756,7 @@ class _MyAppState extends State<MyApp> {
                   ),
                 ),
               )
-                  : (currentFolderName == null ? const Text('DocScan') : Text('Ordner: $currentFolderName')),
+                  : (currentFolderName == null ? const Text('DocScan') : Text('Ordner $currentFolderName')),
               leading: currentFolderName == null
                   ? IconButton(
                 icon: const Icon(Icons.settings_rounded),
@@ -1122,7 +1122,7 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _onCameraButtonPressed() async {
     final date = DateTime.now();
-    final formattedDate = DateFormat('dd.MM.yyyy HH:mm').format(date);
+    final formattedDate = DateFormat('yyyyMMdd_HHmmss').format(date);
     final imageName = '${_defaultDocumentName}_${_documentCounter - 1}_$formattedDate';
 
     try {
