@@ -102,7 +102,7 @@ class _FullScreenImageState extends State<FullScreenImage> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0xff005874),
+        backgroundColor: Color(0xff1b1b1b),
         title: ValueListenableBuilder<String>(
           valueListenable: widget.name,
           builder: (context, value, child) {
@@ -111,7 +111,7 @@ class _FullScreenImageState extends State<FullScreenImage> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.edit),
+            icon: Icon(Icons.edit, color: Color(0xffe7e9ef)),
             onPressed: () {
               TextEditingController nameController = TextEditingController(text: widget.name.value);
               showDialog(

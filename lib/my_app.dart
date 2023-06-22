@@ -726,8 +726,9 @@ class _MyAppState extends State<MyApp> {
         builder: (BuildContext context) {
           double screenWidth = MediaQuery.of(context).size.width;
           return Scaffold(
+            backgroundColor: Color(0xffe7e9ef),
             appBar: AppBar(
-              backgroundColor: const Color(0xff005874),
+              backgroundColor: const Color(0xff1b1b1b),
               title: _isSearching
                   ? Expanded(
                 child: TextField(
@@ -746,7 +747,10 @@ class _MyAppState extends State<MyApp> {
                   : (currentFolderName == null ? const Text('DocScan') : Text('Ordner $currentFolderName')),
               leading: currentFolderName == null
                   ? IconButton(
-                icon: const Icon(Icons.settings_rounded),
+                icon: Icon(
+                  Icons.settings_rounded,
+                  color: Color(0xffe7e9ef),
+                ),
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -764,7 +768,7 @@ class _MyAppState extends State<MyApp> {
                 },
               )
                   : IconButton(
-                icon: const Icon(Icons.arrow_back),
+                icon: Icon(Icons.arrow_back, color: Color(0xffe7e9ef)),
                 onPressed: () {
                   setState(() {
                     currentFolderName = null;
@@ -774,7 +778,7 @@ class _MyAppState extends State<MyApp> {
               ),
               actions: [
                 IconButton(
-                  icon: const Icon(Icons.search),
+                  icon: Icon(Icons.search, color: Color(0xffe7e9ef)),
                   onPressed: () {
                     setState(() {
                       _isSearching = !_isSearching;
@@ -782,7 +786,7 @@ class _MyAppState extends State<MyApp> {
                   },
                 ),
                 IconButton(
-                  icon: const Icon(Icons.picture_as_pdf_rounded),
+                  icon: Icon(Icons.picture_as_pdf_rounded, color: Color(0xffe7e9ef)),
                   onPressed: () {
                     setState(() {
                       _isPdfConversionMode = true;
@@ -791,7 +795,7 @@ class _MyAppState extends State<MyApp> {
                 ),
                 if (_isPdfConversionMode)
                   IconButton(
-                    icon: const Icon(Icons.check),
+                    icon: Icon(Icons.check, color: Color(0xffe7e9ef)),
                     onPressed: () async { // Machen Sie die Funktion async
                       setState(() {
                         _isPdfConversionMode = false;
@@ -804,7 +808,7 @@ class _MyAppState extends State<MyApp> {
                     },
                   ),
                 IconButton(
-                  icon: const Icon(Icons.file_upload),
+                  icon: Icon(Icons.file_upload, color: Color(0xffe7e9ef)),
                   onPressed: () => _showUploadDialog(context),
                 ),
               ],
@@ -837,13 +841,13 @@ class _MyAppState extends State<MyApp> {
                           background: Container(
                             alignment: Alignment.centerLeft,
                             padding: const EdgeInsets.only(left: 20),
-                            color: Colors.white,
-                            child: const Icon(Icons.folder_copy_rounded, color: Color(0xff235276)),
+                            color: Color(0xffe7e9ef),
+                            child: const Icon(Icons.folder_copy_rounded, color: Color(0xff1b1b1b)),
                           ),
                           secondaryBackground: Container(
                             alignment: Alignment.centerRight,
                             padding: const EdgeInsets.only(right: 20),
-                            color: Colors.white,
+                            color: Color(0xffe7e9ef),
                             child: const Icon(Icons.delete_rounded, color: Colors.red),
                           ),
                           child: Card(
@@ -855,8 +859,8 @@ class _MyAppState extends State<MyApp> {
                                 borderRadius: BorderRadius.circular(10),
                                 gradient: const LinearGradient(
                                   colors: [
-                                    Colors.white,
-                                    Colors.white
+                                    Color(0xffe7e9ef),
+                                    Color(0xffe7e9ef)
                                   ],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
@@ -949,15 +953,15 @@ class _MyAppState extends State<MyApp> {
                       FloatingActionButton(
                         onPressed: () => _showFolderDialog(context),
                         tooltip: 'Ordner anzeigen',
-                        child: const Icon(Icons.folder),
-                        backgroundColor: const Color(0xff235276),
+                        child: Icon(Icons.folder, color: Color(0xffe7e9ef)),
+                        backgroundColor: const Color(0xff1b1b1b),
                       ),
                       const SizedBox(height: 16),  // Abstand zwischen den Buttons
                       FloatingActionButton(
                         onPressed: _onCameraButtonPressed,
                         tooltip: 'Bilder hinzufügen',
-                        child: const Icon(Icons.camera_alt),
-                        backgroundColor: const Color(0xff235276),
+                        child: Icon(Icons.camera_alt, color: Color(0xffe7e9ef)),
+                        backgroundColor: const Color(0xff1b1b1b),
                       ),
                     ],
                   );
