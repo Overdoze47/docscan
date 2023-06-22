@@ -19,7 +19,6 @@ import 'fullscreen_image.dart';
 import 'package:pdf/widgets.dart' as pdfWidgets;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:image/image.dart' as img;
-import 'package:pdf/pdf.dart';
 
 class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -31,7 +30,6 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   List<_PictureData> _pictures = [];
   List<_PictureData> _displayedPictures = [];
-  Set<int> _sharedPictures = {};
   int _documentCounter = 1;
   int _emailSentPictures = 0;
   late BannerAd _bannerAd;
@@ -39,7 +37,6 @@ class _MyAppState extends State<MyApp> {
   String _defaultDocumentName = 'DocScan';
   String _emailTemplate = 'Anbei sende ich dir die gescannten Dokumente \n\n\n Von der App DocScan gescannt.';
   List<Folder> _folders = [];
-  bool _isFolderViewMode = true;
   Folder? _selectedFolder;
   String? currentFolderName;
   List<_PictureData> _currentViewPictures = [];
@@ -93,11 +90,7 @@ class _MyAppState extends State<MyApp> {
                   onTap: () {
                     setState(() {
                       currentFolderName = folder.name;
-                      if (currentFolderName != null) {
-                        _displayedPictures = getFolderPictures(currentFolderName!);
-                      } else {
-                        _displayedPictures = [];
-                      }
+                      updateCurrentViewPictures();
                     });
                     Navigator.of(context).pop();
                   },
@@ -300,18 +293,6 @@ class _MyAppState extends State<MyApp> {
     setState(() {
       _searchQuery = _searchController.text;
     });
-  }
-
-  Widget _buildSearchBar() {
-    return TextField(
-      controller: _searchController,
-      autofocus: true,
-      onChanged: (value) => _updateSearchQuery(),
-      decoration: const InputDecoration(
-        hintText: 'Suche...',
-        border: InputBorder.none,
-      ),
-    );
   }
 
   void _startSearch(BuildContext context) {
@@ -572,19 +553,24 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
+  void updateCurrentViewPictures() {
+    setState(() {
+      _currentViewPictures = _pictures.where((pic) => pic.folderName == currentFolderName).toList();
+    });
+  }
+
   Future<void> _shareFiles(BuildContext context) async {
     try {
-      List<String> attachmentFilePaths = _pictures
+      List<_PictureData> picturesToShare = _currentViewPictures
           .where((pictureData) => !pictureData.shared)
-          .map((pictureData) => pictureData.path)
           .toList();
+
+      List<String> attachmentFilePaths = picturesToShare.map((pictureData) => pictureData.path).toList();
 
       await Share.shareFiles(attachmentFilePaths, text: 'Hier sind die angehängten Bilder:');
       setState(() {
-        for (_PictureData picture in _pictures) {
-          if (attachmentFilePaths.contains(picture.path)) {
-            picture.shared = true;
-          }
+        for (_PictureData picture in picturesToShare) {
+          picture.shared = true;
         }
       });
     } catch (error) {
@@ -725,6 +711,7 @@ class _MyAppState extends State<MyApp> {
 
   List<_PictureData> _selectedPictures = [];
   bool _isPdfConversionMode = false;
+  bool _isConverting = false;
 
   @override
   Widget build(BuildContext context) {
@@ -781,6 +768,7 @@ class _MyAppState extends State<MyApp> {
                 onPressed: () {
                   setState(() {
                     currentFolderName = null;
+                    updateCurrentViewPictures();
                   });
                 },
               ),
@@ -804,10 +792,14 @@ class _MyAppState extends State<MyApp> {
                 if (_isPdfConversionMode)
                   IconButton(
                     icon: const Icon(Icons.check),
-                    onPressed: () {
-                      _convertSelectedImagesToPdf();
+                    onPressed: () async { // Machen Sie die Funktion async
                       setState(() {
                         _isPdfConversionMode = false;
+                        _isConverting = true; // Setzen Sie _isConverting auf true, bevor Sie mit der Konvertierung beginnen
+                      });
+                      await _convertSelectedImagesToPdf(); // Warten Sie auf die Fertigstellung der _convertSelectedImagesToPdf()
+                      setState(() {
+                        _isConverting = false; // Setzen Sie _isConverting auf false, wenn die Konvertierung abgeschlossen ist
                       });
                     },
                   ),
@@ -903,7 +895,6 @@ class _MyAppState extends State<MyApp> {
                                                 crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: [
                                                   Text(pictureData.name),
-                                                  Text('${pictureData.date}'),
                                                 ],
                                               ),
                                             ),
@@ -939,6 +930,12 @@ class _MyAppState extends State<MyApp> {
                     ),
                   ),
                 ),
+                if (_isConverting) // Checken, ob es gerade konvertiert
+                  Container(
+                    child: Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
               ],
             ),
             floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
@@ -979,7 +976,7 @@ class _MyAppState extends State<MyApp> {
     super.dispose();
   }
 
-  void _convertSelectedImagesToPdf() async {
+  Future<void> _convertSelectedImagesToPdf() async {
     // Erstellen Sie eine Liste von ausgewählten Bildern
     _selectedPictures = _pictures.where((picture) => picture.selected && picture.fileType == FileType.jpg).toList();
 
@@ -1035,7 +1032,7 @@ class _MyAppState extends State<MyApp> {
 
   Future<bool> _sendEmailWithAttachments(BuildContext context) async {
     List<String> attachmentFilePaths = _currentViewPictures
-        .where((pic) => !pic.shared)
+        .where((pic) => !pic.shared && pic.selected)  // pic.selected Bedingung hinzugefügt
         .map((pic) => pic.path)
         .toList();
 
@@ -1122,7 +1119,7 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _onCameraButtonPressed() async {
     final date = DateTime.now();
-    final formattedDate = DateFormat('yyyyMMdd_HHmmss').format(date);
+    final formattedDate = DateFormat('yyyy-MM-dd_HH-mm-ss').format(date);
     final imageName = '${_defaultDocumentName}_${_documentCounter - 1}_$formattedDate';
 
     try {
@@ -1131,25 +1128,17 @@ class _MyAppState extends State<MyApp> {
       if (documentPaths != null && documentPaths.isNotEmpty) {
         for (String path in documentPaths) {
           final newPath = await _changeFileName(path, imageName);
+          final pictureData = _PictureData( // Bildinstanz erstellen
+            name: imageName,
+            date: formattedDate,
+            path: newPath,
+            folderName: currentFolderName,
+          );
           setState(() {
-            // Bild zur Gesamtliste hinzufügen
-            _pictures.add(_PictureData(
-              name: imageName,
-              date: formattedDate,
-              path: newPath,
-              folderName: currentFolderName,
-            ));
-
-            // Bild zur aktuellen Ansicht hinzufügen, wenn es zum geöffneten Ordner gehört
-            if (currentFolderName == _pictures.last.folderName) {
-              _currentViewPictures.add(_PictureData(
-                name: imageName,
-                date: formattedDate,
-                path: newPath,
-                folderName: currentFolderName,
-              ));
+            _pictures.add(pictureData); // Bild zur Gesamtliste hinzufügen
+            if (currentFolderName == pictureData.folderName) { // Bild zur aktuellen Ansicht hinzufügen, wenn es zum geöffneten Ordner gehört
+              _currentViewPictures.add(pictureData);
             }
-
             _folders = _foldersFromPictures(_pictures);
           });
           savePictures();

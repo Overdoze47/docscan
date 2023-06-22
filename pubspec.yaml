@@ -52,6 +52,7 @@ dependencies:
   hand_signature: ^3.0.1
   flutter_image_compress: ^2.0.3
   pdf_merger: ^0.0.6
+  loading_animation_widget: ^1.2.0+4
 
 
 
